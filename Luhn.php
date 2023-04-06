@@ -7,7 +7,7 @@
  * @Version: 	1.0.0
  */
 
-namespace Validate;
+namespace PHPFuse\Validate;
 
 class Luhn {
 
@@ -123,7 +123,7 @@ class Luhn {
 
     // FLYTTA TILL NYTT RAMVERK (VISSA LÄNDER HAR CHECK DIGITS ex. MOD 11-2)
     function vatNumber() {
-        $vat = new validVatFormat($this->_string);
+        $vat = new Vat($this->_string);
         if($vat->validate()) {
             if($vat->countryCode() === "SE") {
                 return $this->orgNumber();

@@ -7,7 +7,7 @@
  * @Version: 	1.0.0
  */
 
-namespace Validate;
+namespace PHPFuse\Validate;
 
 class Inp {
 
@@ -21,7 +21,7 @@ class Inp {
 	 * @param  ALL $value the input value
 	 * @return inst(self)
 	 */
-	static function _value($value) {
+	static function value($value) {
 		$inst = new self();
 		$inst->_value = $value;
 		$inst->_length = $inst->getLength($value);
@@ -40,7 +40,7 @@ class Inp {
 	 */
 	function luhn() {
 		if(is_null($this->_luhn)) {
-			$this->_luhn = new Validate\Luhn($this->_value);
+			$this->_luhn = new Luhn($this->_value);
 		}
 		return $this->_luhn;
 	}

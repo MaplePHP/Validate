@@ -7,7 +7,7 @@
  * @Version:    1.0.0
  */
 
-namespace Validate;
+namespace PHPFuse\Validate;
 
 class ValidVatFormat {
 
