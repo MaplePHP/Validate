@@ -269,7 +269,6 @@ class Inp {
 	 * @return bool
 	 */
 	function notEqual($str) {
-
 		return (bool)((string)$this->_value !== (string)$str);
 	}
 
@@ -283,6 +282,31 @@ class Inp {
 	 */
 	function string() {
 		return is_string($this->_value);
+	}
+
+	/**
+	 * Lossy password - Will return false if a character inputed is not allowed
+	 * [a-zA-Z\d$@$!%*?&] - Matches "any" letter (uppercase or lowercase), digit, or special character from the allowed set of special characters
+	 * @param  integer $length Minimum length
+	 * @return [type]          [description]
+	 */
+	function lossyPassword($length = 1) {
+		return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{'.$length.',}$/', $this->_value);
+	}
+
+	/**
+	 * Strict password
+	 * (?=.*[a-z]) - at least one lowercase letter
+	 * (?=.*[A-Z]) - at least one uppercase letter
+	 * (?=.*\d) - at least one digit
+	 * (?=.*[$@$!%*?&]) - at least one special character from the set: $, @, #, !, %, *, ?, &
+	 * [A-Za-z\d$@$!%*?&]{1,} - matches 1 or more characters consisting of letters, digits, and the allowed special characters
+	 * I do tho recomend that you validate the length with @length(8, 60) method!
+	 * @param  integer $length Minimum length
+	 * @return bool
+	 */
+	function strictPassword($length = 1) {
+		return (bool)preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{'.$length.',}$/', $this->_value);
 	}
 
 	/**
