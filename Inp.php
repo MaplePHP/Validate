@@ -30,7 +30,6 @@ class Inp {
 	}
 
 	function getLength($value) {
-		$value = utf8_decode($value);
 		return strlen($value);
 	}
 
