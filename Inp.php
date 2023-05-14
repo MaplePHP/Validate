@@ -1,35 +1,46 @@
 <?php 
 /**
- * @Package: 	PHP Fuse - Input data for validation
+ * @Package: 	PHP Fuse - Input validation library
  * @Author: 	Daniel Ronkainen
  * @Licence: 	The MIT License (MIT), Copyright © Daniel Ronkainen
  				Don't delete this comment, its part of the license.
- * @Version: 	1.0.0
  */
 
 namespace PHPFuse\Validate;
 
-class Inp {
+use PHPFuse\Validate\Interfaces\InpInterface;
 
-	private $_value;
-	private $_length;
-	private $_dateTime;
-	private $_luhn;
+use DateTime;
+use PHPFuse\Validate\Luhn;
+
+class Inp implements InpInterface {
+
+	private $value;
+	private $length;
+	private $dateTime;
+	private $luhn;
 
 	/**
 	 * Start instance
 	 * @param  ALL $value the input value
-	 * @return inst(self)
+	 * @return new self
 	 */
-	static function value($value) {
+	static public function value($value): self 
+	{
 		$inst = new self();
-		$inst->_value = $value;
-		$inst->_length = $inst->getLength($value);
-		$inst->_dateTime = new \DateTime("now");
+		$inst->value = $value;
+		$inst->length = $inst->getLength($value);
+		$inst->dateTime = new DateTime("now");
 		return $inst;
 	}
 
-	function getLength($value) {
+	/**
+	 * Get value string length
+	 * @param  [type] $value [description]
+	 * @return [type]        [description]
+	 */
+	public function getLength($value): int 
+	{
 		return strlen($value);
 	}
 
@@ -37,26 +48,40 @@ class Inp {
 	 * Access luhn validation class
 	 * @return instance (Form\Luhn)
 	 */
-	function luhn() {
-		if(is_null($this->_luhn)) {
-			$this->_luhn = new Luhn($this->_value);
+	public function luhn(): Luhn
+	{
+		if(is_null($this->luhn)) {
+			$this->luhn = new Luhn($this->value);
 		}
-		return $this->_luhn;
+		return $this->luhn;
 	}
 
 	/**
 	 * Set field required (same as @length(1));
 	 * @return bool
 	 */
-	function required() {
+	public function hasValue(): bool 
+	{
 		return $this->length(1);
+	}
+
+	/**
+	 * Needs to be filled in, and a valid value (e.g. 0 = false, emtpy = false)
+	 * @return bool
+	 */
+	function required() {
+		if($this->length(1) && (bool)$this->value) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * Validate Swedish personal numbers
 	 * @return bool
 	 */
-	function socialNumber() {
+	public function socialNumber(): bool 
+	{
 		return $this->luhn()->personnummer();
 	}
 
@@ -64,7 +89,8 @@ class Inp {
 	 * Validate Swedish personal numbers
 	 * @return bool
 	 */
-	function personnummer() {
+	public function personnummer(): bool
+	{
 		return $this->socialNumber();
 	}
 
@@ -72,7 +98,8 @@ class Inp {
 	 * Validate Swedish org numbers
 	 * @return bool
 	 */
-	function orgNumber() {
+	public function orgNumber(): bool
+	{
 		return $this->luhn()->orgNumber();
 	}
 
@@ -80,7 +107,8 @@ class Inp {
 	 * Validate creditcardnumbers (THIS needs to be tested)
 	 * @return bool
 	 */
-	function creditcard() {
+	public function creditcard(): bool
+	{
 		return $this->luhn()->creditcard();
 	}
 
@@ -88,7 +116,8 @@ class Inp {
 	 * Validate Swedish vat number
 	 * @return bool
 	 */
-	function vatNumber() {
+	public function vatNumber(): bool
+	{
 		return $this->luhn()->vatNumber();
 	}
 
@@ -97,8 +126,9 @@ class Inp {
 	 * Loosely check if is email. By loosley I mean it will not check if valid DNS. You can check this manually with the method @dns but in most cases this will not be necessary.
 	 * @return bool
 	 */
-	function email() {
-		return (bool)(filter_var($this->_value, FILTER_VALIDATE_EMAIL));
+	public function email(): bool
+	{
+		return (bool)(filter_var($this->value, FILTER_VALIDATE_EMAIL));
 	}
 
 	/**
@@ -107,18 +137,18 @@ class Inp {
 	 * @param  int|null $pos   match start positon if you want
 	 * @return bool
 	 */
-	function findInString(string $match, ?int $pos = NULL) {
-	
-		
-		return (bool)((is_null($pos) && strpos($this->_value, $match) !== false) || (!is_null($pos) && strpos($this->_value, $match) === $pos));
+	public function findInString(string $match, ?int $pos = NULL): bool
+	{	
+		return (bool)((is_null($pos) && strpos($this->value, $match) !== false) || (!is_null($pos) && strpos($this->value, $match) === $pos));
 	}
 
 	/**
 	 * Alternative "Find in string" @findInString()
 	 */
-	function strpos(string $match, ?int $pos = NULL) {
+	public function strpos(string $match, ?int $pos = NULL): bool
+	{
 		$match = (is_null($pos)) ? false : $pos;
-		return (bool)((is_null($pos) && strpos($this->_value, $match) !== $pos) || (!is_null($pos) && strpos($this->_value, $match) === $pos));
+		return (bool)((is_null($pos) && strpos($this->value, $match) !== $pos) || (!is_null($pos) && strpos($this->value, $match) === $pos));
 	}
 
 
@@ -126,8 +156,9 @@ class Inp {
 	 * Check if is phone
 	 * @return bool
 	 */
-	function phone() {
-		$val = str_replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""], $this->_value);
+	public function phone(): bool
+	{
+		$val = str_replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""], $this->value);
 		$match = preg_match('/^[0-9]{7,14}+$/', $val);
 		$strict = preg_match('/^\+[0-9]{1,2}[0-9]{6,13}$/', $val);
 		return (bool)($strict || $match);
@@ -139,25 +170,29 @@ class Inp {
 	 * @param  int|null $b end length
 	 * @return bool
 	 */
-	function zip(int $a, int $b = NULL) {
-		$this->_value = str_replace([" ", "-", "—", "–"], ["", "", "", ""], $this->_value);
-		$this->_length = $this->getLength($this->_value);
-		return ($this->int() && $this->length($a, $b));
+	public function zip(int $a, int $b = NULL): bool
+	{
+		$this->value = str_replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
+		$this->length = $this->getLength($this->value);
+		return (bool)($this->int() && $this->length($a, $b));
 	}
 
 	/**
 	 * Value is number
 	 * @return bool
 	 */
-	function number() {
-		return is_numeric($this->_value);
+	public function number(): bool
+	{
+		return (bool)(is_numeric($this->value));
 	}
 
-	function numeric() {
+	public function numeric(): bool
+	{
 		return $this->number();
 	}
 
-	function numericVal() {
+	public function numericVal(): bool
+	{
 		return $this->number();
 	}
 
@@ -165,31 +200,35 @@ class Inp {
 	 * Value is number positive 20
 	 * @return bool
 	 */
-	function positive() {
-		return ((float)$this->_value >= 0);
+	public function positive(): bool
+	{
+		return (bool)((float)$this->value >= 0);
 	}
 
 	/**
 	 * Value is number negative -20
 	 * @return bool
 	 */
-	function negative() {
-		return ((float)$this->_value < 0);
+	public function negative(): bool
+	{
+		return (bool)((float)$this->value < 0);
 	}
 
 	/**
 	 * Value is minimum float|int value
 	 * @return bool
 	 */
-	function min(float $i) {
-		return ((float)$this->_value >= $i);
+	public function min(float $i): bool
+	{
+		return (bool)((float)$this->value >= $i);
 	}
 
 	/**
 	 * Value is minimum float|int value (Same as "@min()" but can be used to add another error message)
 	 * @return bool
 	 */
-	function minAlt(float $i) {
+	public function minAlt(float $i): bool
+	{
 		return $this->min($i);
 	}
 
@@ -197,24 +236,27 @@ class Inp {
 	 * Value is maximum float|int value
 	 * @return bool
 	 */
-	function max(float $i) {
-		return ((float)$this->_value <= $i);
+	public function max(float $i): bool
+	{
+		return (bool)((float)$this->value <= $i);
 	}
 
 	/**
 	 * Is value float
 	 * @return bool
 	 */
-	function float() {
-		return (bool)filter_var($this->_value, FILTER_VALIDATE_FLOAT);
+	public function float(): bool
+	{
+		return (bool)filter_var($this->value, FILTER_VALIDATE_FLOAT);
 	}
 
 	/**
 	 * Is value int
 	 * @return bool
 	 */
-	function int() {
-		return (bool)filter_var($this->_value, FILTER_VALIDATE_INT);
+	public function int(): bool
+	{
+		return (bool)filter_var($this->value, FILTER_VALIDATE_INT);
 	}
 
 	/**
@@ -223,8 +265,9 @@ class Inp {
 	 * @param  int|null $b end length
 	 * @return bool
 	 */
-	function length(int $a, int $b = NULL) {
-		if($this->_length >= $a && (($b === NULL) || $this->_length <= $b)) {
+	public function length(int $a, int $b = NULL): bool
+	{
+		if($this->length >= $a && (($b === NULL) || $this->length <= $b)) {
 			return true;
 		}
 		return false;
@@ -237,7 +280,8 @@ class Inp {
 	 * @param  int|null $b 		end length
 	 * @return bool
 	 */
-	function hasLength(string $key, int $a, int $b = NULL) {
+	public function hasLength(string $key, int $a, int $b = NULL): bool
+	{
 		$post = ($_POST[$key] ?? 0);
 		$continue = (bool)((int)$post === 1);		
 		return (bool)(!$continue || $this->length($a, $b));
@@ -248,8 +292,9 @@ class Inp {
 	 * @param  int 	$a 	length
 	 * @return bool
 	 */
-	function equalLength(int $a) {
-		if($this->_length === $a) {
+	public function equalLength(int $a): bool
+	{
+		if($this->length === $a) {
 			return true;
 		}
 		return false;
@@ -259,19 +304,22 @@ class Inp {
 	 * IF value equals to param
 	 * @return bool
 	 */
-	function equal($str) {
-		return (bool)((string)$this->_value === (string)$str);
+	public function equal($str): bool
+	{
+		return (bool)((string)$this->value === (string)$str);
 	}
 
 	/**
 	 * IF value equals to param
 	 * @return bool
 	 */
-	function notEqual($str) {
-		return (bool)((string)$this->_value !== (string)$str);
+	public function notEqual($str): bool
+	{
+		return (bool)((string)$this->value !== (string)$str);
 	}
 
-	function equals($str) {
+	public function equals($str): bool
+	{
 		return $this->equal();
 	}
 
@@ -279,8 +327,9 @@ class Inp {
 	 * Is value string
 	 * @return bool
 	 */
-	function string() {
-		return is_string($this->_value);
+	public function string(): bool
+	{
+		return (bool)(is_string($this->value));
 	}
 
 	/**
@@ -289,8 +338,9 @@ class Inp {
 	 * @param  integer $length Minimum length
 	 * @return [type]          [description]
 	 */
-	function lossyPassword($length = 1) {
-		return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{'.$length.',}$/', $this->_value);
+	public function lossyPassword($length = 1): bool
+	{
+		return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{'.$length.',}$/', $this->value);
 	}
 
 	/**
@@ -304,16 +354,18 @@ class Inp {
 	 * @param  integer $length Minimum length
 	 * @return bool
 	 */
-	function strictPassword($length = 1) {
-		return (bool)preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{'.$length.',}$/', $this->_value);
+	public function strictPassword($length = 1): bool
+	{
+		return (bool)preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{'.$length.',}$/', $this->value);
 	}
 
 	/**
 	 * Is value is string and character between a-z or A-Z
 	 * @return bool
 	 */
-	function pregMatch($matchStr) {
-		return (bool)preg_match("/^[".$matchStr."]+$/", $this->_value);
+	public function pregMatch($matchStr): bool
+	{
+		return (bool)preg_match("/^[".$matchStr."]+$/", $this->value);
 	}
 
 
@@ -321,24 +373,27 @@ class Inp {
 	 * Is value is string and character between a-z or A-Z
 	 * @return bool
 	 */
-	function AtoZ() {
-		return (bool)preg_match("/^[a-zA-Z]+$/", $this->_value);
+	public function AtoZ(): bool
+	{
+		return (bool)preg_match("/^[a-zA-Z]+$/", $this->value);
 	}
 
 	/**
 	 * Is value is string and character between a-z (LOWERCASE)
 	 * @return bool
 	 */
-	function lowerAtoZ() {
-		return (bool)preg_match("/^[a-z]+$/", $this->_value);
+	public function lowerAtoZ(): bool
+	{
+		return (bool)preg_match("/^[a-z]+$/", $this->value);
 	}
 
 	/**
 	 * Is value is string and character between A-Z (UPPERCASE)
 	 * @return bool
 	 */
-	function upperAtoZ() {
-		return (bool)preg_match("/^[A-Z]+$/", $this->_value);
+	public function upperAtoZ(): bool
+	{
+		return (bool)preg_match("/^[A-Z]+$/", $this->value);
 	}
 
 
@@ -346,40 +401,45 @@ class Inp {
 	 * Is Hex color code string
 	 * @return bool
 	 */
-	function hex() {
-		return preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->_value);
+	public function hex(): bool
+	{
+		return preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value);
 	}
 
 	/**
 	 * Is value array
 	 * @return bool
 	 */
-	function array() {
-		return is_array($this->_value);
+	public function isArray(): bool
+	{
+		return (bool)(is_array($this->value));
 	}
 
 	/**
 	 * Is value object
 	 * @return bool
 	 */
-	function object() {
-		return is_object($this->_value);
+	public function isObject(): bool
+	{
+		return (bool)(is_object($this->value));
 	}
 
 	/**
 	 * Is value bool
 	 * @return bool
 	 */
-	function bool() {
-		return is_bool($this->_value);
+	public function bool(): bool
+	{
+		return (bool)(is_bool($this->value));
 	}
 
 	/**
 	 * If value === ([on, off], [yes, no], [1, 0] or [true, false])
 	 * @return bool
 	 */
-	function boolVal() {
-		$v = strtolower(trim((string)$this->_value));
+	public function boolVal(): bool
+	{
+		$v = strtolower(trim((string)$this->value));
 		return (bool)($v === "on" || $v === "yes" || $v === "1" || $v === "true");
 	}
 
@@ -389,23 +449,24 @@ class Inp {
 	 * @param  int|float|string|date $b 20, z, 1988-08-20
 	 * @return bool
 	 */
-	function between($a, $b) {
+	public function between($a, $b): bool
+	{
 
 		if($this->number()) {
 			return ($this->min() && $this->max());
 
 		} elseif(strlen($a) === 1 && strlen($b) === 1) {
-			$r = $this->_range(strtolower($a), strtolower($b));
+			$r = $this->rangeBetween(strtolower($a), strtolower($b));
 			$l = count($r);
-			if($find = array_search((string)$this->_value, $r)) {
+			if($find = array_search((string)$this->value, $r)) {
 				return (bool)(($find+1) <= $l);
 			}
 
 		} elseif($this->date() || $this->dateTime()) {
-			$date = new \DateTime($this->_value);
-			$from = new \DateTime($a);
-			$to = new \DateTime($b);
-			return ($date >= $from && $date <= $to);
+			$date = new DateTime($this->value);
+			$from = new DateTime($a);
+			$to = new DateTime($b);
+			return (bool)($date >= $from && $date <= $to);
 		}
 
 		return false;
@@ -416,8 +477,9 @@ class Inp {
 	 * @param  string $format validate after this date format (default Y-m-d)
 	 * @return bool|inst(dateTime)
 	 */
-	function date($format = "Y-m-d") {
-		return \DateTime::createFromFormat($format, $this->_value);
+	public function date($format = "Y-m-d"): bool|DateTime
+	{
+		return DateTime::createFromFormat($format, $this->value);
 	}
 
 
@@ -426,7 +488,8 @@ class Inp {
 	 * @param  string  $format  validate after this date format (default Y-m-d H:i)
 	 * @return bool|inst(dateTime)
 	 */
-	function dateTime($format = "Y-m-d H:i") {
+	public function dateTime($format = "Y-m-d H:i"): bool|DateTime
+	{
 		return $this->date($format);
 	}
 
@@ -435,7 +498,8 @@ class Inp {
 	 * @param  string  $format  validate after this date format (default Y-m-d H:i)
 	 * @return bool|inst(dateTime)
 	 */
-	function time($format = "H:i") {
+	public function time($format = "H:i"): bool|DateTime
+	{
 		return $this->date($format);
 	}
 
@@ -444,16 +508,15 @@ class Inp {
 	 * @param  string $format validate after this date format (default Y-m-d H:i)
 	 * @return bool / array(T1, T2); T1 = start and T2 = end
 	 */
-	function dateRange($format = "Y-m-d H:i") {
-		$exp = explode(" - ", $this->_value);
+	public function dateRange($format = "Y-m-d H:i"): bool
+	{
+		$exp = explode(" - ", $this->value);
 		if(count($exp) === 2) {
 			$t1 = trim($exp[0]);
 			$t2 = trim($exp[1]);
-
-			$v1 = \DateTime::createFromFormat($format, $t1);
-			$v2 = \DateTime::createFromFormat($format, $t2);
-
-			return ($v1 && $v2 && ($v1->getTimestamp() <= $v2->getTimestamp())) ? ["t1" => $t1, "t2" => $t2] : false;
+			$v1 = DateTime::createFromFormat($format, $t1);
+			$v2 = DateTime::createFromFormat($format, $t2);
+			return (bool)(($v1 && $v2 && ($v1->getTimestamp() <= $v2->getTimestamp())) ? ["t1" => $t1, "t2" => $t2] : false);
 		}
 		return false;
 	}
@@ -463,9 +526,10 @@ class Inp {
 	 * @param  int    $a 18 == user should be atleast 18 years old
 	 * @return [type]    [description]
 	 */
-	function age(int $a) {
-		$now = $this->_dateTime->format("Y");
-		$dateTime = new \DateTime($this->_value);
+	public function age(int $a): bool
+	{
+		$now = $this->dateTime->format("Y");
+		$dateTime = new \DateTime($this->value);
 		$birth = $dateTime->format("Y");
 		$age = (int)($now-$birth);
 		return (bool)($age >= (int)$a);
@@ -476,17 +540,19 @@ class Inp {
 	 * @param  boolean $flag stricter = true
 	 * @return bool
 	 */
-	function domain($flag = true) {
+	public function domain($flag = true): bool
+	{
 		$flag = ($flag) ? FILTER_FLAG_HOSTNAME : false;
-		return (bool)filter_var((string)$this->_value, FILTER_VALIDATE_DOMAIN, $flag);
+		return (bool)filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $flag);
 	}
 
 	/**
 	 * Check if is valid URL (http|https is required)
 	 * @return bool
 	 */
-	function url() {
-		$val = (string)$this->_value;
+	public function url(): bool
+	{
+		$val = (string)$this->value;
 		
 		// Only used to pass validation will not change any data
 		$val = str_replace(['{{root}}', '{{url}}'], ["https://example.se", "https://example.se/"], $val);
@@ -499,8 +565,9 @@ class Inp {
 	 * Check if "Host|domain" has an valid DNS (will check A, AAAA and MX)
 	 * @return bool
 	 */
-	function dns() {
-		$host = $this->_value;
+	public function dns(): bool
+	{
+		$host = $this->value;
 		$Aresult = true;
         $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
         $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
@@ -515,9 +582,10 @@ class Inp {
 	 * @param  string $value IPv4, IPv6, String, txt
 	 * @return false/array
 	 */
-	function matchDNS(int $type, string $value) {
+	public function matchDNS(int $type, string $value): bool|array
+	{
 		
-		$host = $this->_value;
+		$host = $this->value;
         $variant = INTL_IDNA_VARIANT_2003;
         if(defined('INTL_IDNA_VARIANT_UTS46')) $variant = INTL_IDNA_VARIANT_UTS46;
         $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
@@ -532,10 +600,11 @@ class Inp {
 
 	/**
 	 * Validate multiple. Will return true if "one" matches 
-	 * @param  [type] $arr [description]
-	 * @return [type]      [description]
+	 * @param  arrayt $arr [description]
+	 * @return mixed
 	 */
-	function oneOf(array $arr) {
+	public function oneOf(array $arr) 
+	{
 		$valid = false;
 		foreach($arr as $k => $v) {
 			if(is_array($v)) {
@@ -549,10 +618,11 @@ class Inp {
 
 	/**
 	 * Validate multiple. Will return true if "all" matches 
-	 * @param  [type] $arr [description]
-	 * @return [type]      [description]
+	 * @param  array $arr [description]
+	 * @return mixed
 	 */
-	function allOf(array $arr) {
+	public function allOf(array $arr) 
+	{
 		$valid = true;
 		foreach($arr as $k => $v) {
 			if(is_array($v)) {
@@ -564,7 +634,7 @@ class Inp {
 		return $valid;
 	}
 
-	function continue(array $arr1, array $arr2) {
+	public function continue(array $arr1, array $arr2) {
 		if($this->allOf($arr1)) {
 			if(!$this->required()) return true;
 			return $this->allOf($arr2);
@@ -573,7 +643,7 @@ class Inp {
 	}
 
 	// For your information: ÅÄÖ will not be in predicted range.
-	private function _range($start, $end) {
+	private function rangeBetween($start, $end) {
 	    $result = array();
 	    list(, $_start, $_end) = unpack("N*", mb_convert_encoding($start . $end, "UTF-32BE", "UTF-8"));
 	    $offset = $_start < $_end ? 1 : -1;
