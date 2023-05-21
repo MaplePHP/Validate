@@ -323,6 +323,29 @@ class Inp implements InpInterface {
 		return $this->equal();
 	}
 
+
+	/**
+	 * Chech is a valid version number
+	 * @return bool
+	 */
+	public function validVersion($strict = false): bool 
+	{
+		$strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
+		return (bool)($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
+	}
+
+
+	/**
+	 * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
+	 * @param  string $withVersion [description]
+	 * @param  string $operator    [description]
+	 * @return bool
+	 */
+	public function versionCompare(string $withVersion, string $operator = ">="): bool 
+	{
+		return (bool)(version_compare((string)$this->value, $withVersion, $operator) >= 0);
+	}
+
 	/**
 	 * Is value string
 	 * @return bool
