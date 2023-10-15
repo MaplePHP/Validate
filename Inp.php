@@ -57,23 +57,24 @@ class Inp implements InpInterface {
 	}
 
 	/**
-	 * Set field required (same as @length(1));
+	 * Will check if value if empty (e.g. "", 0, NULL) = false
+	 * @return bool
+	 */
+	public function required(): bool 
+	{
+		if($this->length(1) && !empty($this->value)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Will only check if there is a value (e.g. 0) = true
 	 * @return bool
 	 */
 	public function hasValue(): bool 
 	{
 		return $this->length(1);
-	}
-
-	/**
-	 * Needs to be filled in, and a valid value (e.g. 0 = false, emtpy = false)
-	 * @return bool
-	 */
-	function required() {
-		if($this->length(1) && (bool)$this->value) {
-			return true;
-		}
-		return false;
 	}
 
 	/**
