@@ -1,55 +1,63 @@
-<?php 
+<?php
+
 /**
- * @Package: 	PHP Fuse - Luhn algorith
- * @Author: 	Daniel Ronkainen
- * @Licence: 	The MIT License (MIT), Copyright © Daniel Ronkainen
- 				Don't delete this comment, its part of the license.
- * @Version: 	1.0.0
+ * @Package:    PHP Fuse - Luhn algorith
+ * @Author:     Daniel Ronkainen
+ * @Licence:    The MIT License (MIT), Copyright © Daniel Ronkainen
+                Don't delete this comment, its part of the license.
+ * @Version:    1.0.0
  */
 
 namespace PHPFuse\Validate;
 
-class Luhn {
-
-
-    private $_number;
-    private $_length;
-    private $_string;
+class Luhn
+{
+    private $number;
+    private $length;
+    private $string;
+    private $part;
 
 
     /**
      * Start intsance and input Value
      */
-    function __construct($number) {
-        preg_match('/^[a-zA-Z\d]+$/', $number, $this->_string);
+    public function __construct($number)
+    {
+        preg_match('/^[a-zA-Z\d]+$/', $number, $this->string);
 
-        $this->_string = preg_replace('/[^A-Z\d]/', '', strtoupper($number)); 
-        $this->_number = preg_replace('/\D/', '', $number);
-        $this->_length = strlen($this->_number);
+        $this->string = preg_replace('/[^A-Z\d]/', '', strtoupper($number));
+        $this->number = preg_replace('/\D/', '', $number);
+        $this->length = strlen($this->number);
     }
 
     /**
      * Validate Swedish security number
      * @return bool
      */
-    function socialNumber() {
-        $this->_part = $this->_part();
-        if(in_array('', $this->_part, true)) return false;
+    public function socialNumber()
+    {
+        $this->part = $this->part();
+        if (in_array('', $this->part, true)) {
+            return false;
+        }
 
-        if(!$this->isDate() && !$this->isCoordinationNumber()) return false;
+        if (!$this->isDate() && !$this->isCoordinationNumber()) {
+            return false;
+        }
 
-        $checkStr = $this->_part['year'] . $this->_part['month'] . $this->_part['day'] . $this->_part['num'];
-        $sum = $this->_luhn($checkStr);
-        return ((int)$sum === (int)$this->_part['check']);
+        $checkStr = $this->part['year'] . $this->part['month'] . $this->part['day'] . $this->part['num'];
+        $sum = $this->luhn($checkStr);
+        return ((int)$sum === (int)$this->part['check']);
     }
 
     /**
      * Check if a Swedish social security number is for a male.
      * @return bool
      */
-    function isMale() {
-        $this->_part = $this->_part();
-        $genderDigit = substr($this->_part['num'], -1);
+    public function isMale()
+    {
+        $this->part = $this->part();
+        $genderDigit = substr($this->part['num'], -1);
         return boolval($genderDigit % 2);
     }
 
@@ -57,7 +65,8 @@ class Luhn {
      * Check if a Swedish social security number is for a female.
      * @return bool
      */
-    function isFemale() {
+    public function isFemale()
+    {
         return !$this->isMale();
     }
 
@@ -65,39 +74,43 @@ class Luhn {
      * Validate Swedish security number
      * @return bool
      */
-    function personnummer() {
+    public function personnummer()
+    {
         return $this->socialNumber();
     }
 
-    function orgNumber() {
-        $num = substr($this->_number, 0, 10);
-        $sum = $this->_luhn($num);
+    public function orgNumber()
+    {
+        $num = substr($this->number, 0, 10);
+        $sum = $this->luhn($num);
         return (bool)((int)$sum === 0);
     }
 
     /*
     function plusgiro() {
-        $sum = substr($this->_number, 0, -1);
-        $check = substr($this->_number, -1);
-        $sum = $this->_luhn($sum);
+        $sum = substr($this->number, 0, -1);
+        $check = substr($this->number, -1);
+        $sum = $this->luhn($sum);
         return ((int)$sum === (int)$check);
     }
     function bankgiro() {
-        $sum = $this->_luhn("50334143");
+        $sum = $this->luhn("50334143");
         return ((int)$sum === (int)$check);
     }
      */
 
     // BEHÖVS TESTAS
-    function creditcard() {
-        if($this->cardPrefix()) {
-            $sum = $this->_luhn($this->_number);
+    public function creditcard()
+    {
+        if ($this->cardPrefix()) {
+            $sum = $this->luhn($this->number);
             return (bool)((int)$sum === 0);
         }
         return false;
     }
 
-    function cardPrefix() {
+    public function cardPrefix()
+    {
 
         $arr = [
             'visaelectron' => '/^4(026|17500|405|508|844|91[37])/',
@@ -113,8 +126,10 @@ class Luhn {
             'jcb' => '/^35/'
         ];
 
-        foreach($arr as $card => $pattern) {
-            if(preg_match($pattern, $this->_number)) return $card;
+        foreach ($arr as $card => $pattern) {
+            if (preg_match($pattern, $this->number)) {
+                return $card;
+            }
         }
 
         return false;
@@ -122,10 +137,11 @@ class Luhn {
 
 
     // FLYTTA TILL NYTT RAMVERK (VISSA LÄNDER HAR CHECK DIGITS ex. MOD 11-2)
-    function vatNumber() {
-        $vat = new Vat($this->_string);
-        if($vat->validate()) {
-            if($vat->countryCode() === "SE") {
+    public function vatNumber()
+    {
+        $vat = new Vat($this->string);
+        if ($vat->validate()) {
+            if ($vat->countryCode() === "SE") {
                 return $this->orgNumber();
             }
             return true;
@@ -140,12 +156,15 @@ class Luhn {
      * @param string str
      * @return int
      */
-    protected function _luhn($number) {
+    protected function luhn($number)
+    {
         $sum = $v = 0;
-        for ($i = 0; $i < strlen($number); $i ++) {
+        for ($i = 0; $i < strlen($number); $i++) {
             $v = (int)$number[$i];
             $v *= 2 - ($i % 2);
-            if($v > 9) $v -= 9;
+            if ($v > 9) {
+                $v -= 9;
+            }
             $sum += $v;
         }
 
@@ -158,44 +177,71 @@ class Luhn {
      * @param bool $longFormat YYMMDD-XXXX or YYYYMMDDXXXX since the tax office says both are official
      * @return string
      */
-    function format($str, $longFormat = false) {
-        if(!$this->validate($str)) return '';
-        
-        $parts = $this->_part($str);
+    public function format($str, $longFormat = false)
+    {
+        if (!$this->validate($str)) {
+            return '';
+        }
+
+        $parts = $this->part($str);
         $format = ($longFormat) ? '%1$s%2$s%3$s%4$s%6$s%7$s' : '%2$s%3$s%4$s%5$s%6$s%7$s';
 
-        $return = sprintf($format, $parts['century'], $parts['year'], $parts['month'], $parts['day'], $parts['sep'], $parts['num'], $parts['check']);
+        $return = sprintf(
+            $format,
+            $parts['century'],
+            $parts['year'],
+            $parts['month'],
+            $parts['day'],
+            $parts['sep'],
+            $parts['num'],
+            $parts['check']
+        );
         return $return;
     }
 
-    function isDate() {
-        return checkdate($this->getPart('month'), $this->getPart('day'), $this->getPart('century').$this->getPart('year'));
+    public function isDate()
+    {
+        return checkdate(
+            $this->getPart('month'),
+            $this->getPart('day'),
+            $this->getPart('century').$this->getPart('year')
+        );
     }
 
-    function getPart($k) {
-        return ($this->_part[$k] ??  0);
+    public function getPart($k)
+    {
+        return ($this->part[$k] ??  0);
     }
 
     /**
      * Check if is a coordinaion number
-     * If you are going to live and work here but don’t meet the requirements for registering in the Swedish Population Register.
+     * If you are going to live and work here but don’t meet the requirements
+     * for registering in the Swedish Population Register.
      * @return bool
      */
-    function isCoordinationNumber() {
-        return checkdate($this->getPart('month'), ((int)$this->getPart('day')-60), $this->getPart('century').$this->getPart('year'));
+    public function isCoordinationNumber()
+    {
+        return checkdate(
+            $this->getPart('month'),
+            ((int)$this->getPart('day') - 60),
+            $this->getPart('century').$this->getPart('year')
+        );
     }
 
-    
+
     /**
      * Parse Swedish social security numbers and get the parts
      * @param string $str
      * @return array
      */
-    private function _part() {
+    private function part()
+    {
 
         $reg = '/^(\d{2}){0,1}(\d{2})(\d{2})(\d{2})([\+\-\s]?)(\d{3})(\d)$/';
-        preg_match($reg, $this->_number, $match);
-        if(!isset($match) || count($match) !== 8) return array();
+        preg_match($reg, $this->number, $match);
+        if (!isset($match) || count($match) !== 8) {
+            return array();
+        }
 
         $century = $match[1];
         $year    = $match[2];
@@ -212,8 +258,8 @@ class Luhn {
                 $sep = '+';
             }
         }
-        if(empty($century)) {
-            if($sep === '+') {
+        if (empty($century)) {
+            if ($sep === '+') {
                 $baseYear = date('Y', strtotime('-100 years'));
             } else {
                 $baseYear = date('Y');
@@ -231,6 +277,4 @@ class Luhn {
             'check' => $check
         );
     }
-
-
 }

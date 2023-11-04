@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 /**
  * @Package:    PHP Fuse - Validate vat number
  * @Author:     Daniel Ronkainen
@@ -9,14 +10,13 @@
 
 namespace PHPFuse\Validate;
 
-class ValidVatFormat {
-
-
+class ValidVatFormat
+{
     /**
      * Regular expression per country code
      * @link http://ec.europa.eu/taxation_customs/vies/faq.html?locale=lt#item_11
      */
-    const PATTERNS = [
+    public const PATTERNS = [
         'AT' => 'U[A-Z\d]{8}',
         'BE' => '(0\d{9}|\d{10})',
         'BG' => '\d{9,10}',
@@ -47,28 +47,31 @@ class ValidVatFormat {
         'SK' => '\d{10}'
     ];
 
-    private $_country;
-    private $_number;
+    private $country;
+    private $number;
 
-    function __construct($vatNumber) {
-        $this->_country = substr($vatNumber, 0, 2);
-        $this->_number = substr($vatNumber, 2);
+    public function __construct($vatNumber)
+    {
+        $this->country = substr($vatNumber, 0, 2);
+        $this->number = substr($vatNumber, 2);
     }
 
     /**
      * Validate a VAT country and if is EU.
      * @return boolean
      */
-    function validateCountry() {
-        return (bool)(isset($this::PATTERNS[$this->_country]));
+    public function validateCountry()
+    {
+        return (bool)(isset($this::PATTERNS[$this->country]));
     }
 
     /**
      * Get the selected country code
      * @return [type] [description]
      */
-    function getCountryCode() {
-        return $this->_country;
+    public function getCountryCode()
+    {
+        return $this->country;
     }
 
     /**
@@ -76,12 +79,11 @@ class ValidVatFormat {
      * @param string $vatNumber
      * @return boolean
      */
-    function validate() {
-        if(is_string($this->_number) && $this->validateCountry()) {
-            return preg_match('/^' . $this::PATTERNS[$this->_country] . '$/', $this->_number) > 0;
+    public function validate()
+    {
+        if (is_string($this->number) && $this->validateCountry()) {
+            return preg_match('/^' . $this::PATTERNS[$this->country] . '$/', $this->number) > 0;
         }
         return false;
     }
-
-
 }
