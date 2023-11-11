@@ -10,7 +10,6 @@
 namespace PHPFuse\Validate;
 
 use PHPFuse\Validate\Interfaces\InpInterface;
-
 use DateTime;
 use PHPFuse\Validate\Luhn;
 
@@ -171,15 +170,15 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid ZIP
-     * @param  int      $a start length
-     * @param  int|null $b end length
+     * @param  int      $arg1 start length
+     * @param  int|null $arg2 end length
      * @return bool
      */
-    public function zip(int $a, int $b = null): bool
+    public function zip(int $arg1, int $arg2 = null): bool
     {
         $this->value = str_replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
         $this->length = $this->getLength($this->value);
-        return (bool)($this->int() && $this->length($a, $b));
+        return (bool)($this->int() && $this->length($arg1, $arg2));
     }
 
     /**
@@ -223,27 +222,27 @@ class Inp implements InpInterface
      * Value is minimum float|int value
      * @return bool
      */
-    public function min(float $i): bool
+    public function min(float $int): bool
     {
-        return (bool)((float)$this->value >= $i);
+        return (bool)((float)$this->value >= $int);
     }
 
     /**
      * Value is minimum float|int value (Same as "@min()" but can be used to add another error message)
      * @return bool
      */
-    public function minAlt(float $i): bool
+    public function minAlt(float $int): bool
     {
-        return $this->min($i);
+        return $this->min($int);
     }
 
     /**
      * Value is maximum float|int value
      * @return bool
      */
-    public function max(float $i): bool
+    public function max(float $int): bool
     {
-        return (bool)((float)$this->value <= $i);
+        return (bool)((float)$this->value <= $int);
     }
 
     /**
@@ -265,41 +264,41 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value string length is more than start ($a) or between start ($a) and end ($b)
-     * @param  int      $a start length
-     * @param  int|null $b end length
+     * Value string length is more than start ($arg1) or between start ($arg1) and end ($arg2)
+     * @param  int      $arg1 start length
+     * @param  int|null $arg2 end length
      * @return bool
      */
-    public function length(int $a, int $b = null): bool
+    public function length(int $arg1, int $arg2 = null): bool
     {
-        if ($this->length >= $a && (($b === null) || $this->length <= $b)) {
+        if ($this->length >= $arg1 && (($arg2 === null) || $this->length <= $arg2)) {
             return true;
         }
         return false;
     }
 
     /**
-     * Value string length of OTHER field is more than start ($a) or between start ($a) and end ($b)
+     * Value string length of OTHER field is more than start ($arg1) or between start ($arg1) and end ($arg2)
      * @param  string   $key    HTTP Post KEY
-     * @param  int      $a      start length
-     * @param  int|null $b      end length
+     * @param  int      $arg1      start length
+     * @param  int|null $arg2      end length
      * @return bool
      */
-    public function hasLength(string $key, int $a, int $b = null): bool
+    public function hasLength(string $key, int $arg1, int $arg2 = null): bool
     {
         $post = ($_POST[$key] ?? 0);
         $continue = (bool)((int)$post === 1);
-        return (bool)(!$continue || $this->length($a, $b));
+        return (bool)(!$continue || $this->length($arg1, $arg2));
     }
 
     /**
-     * Value string length is equal to ($a)
-     * @param  int  $a  length
+     * Value string length is equal to ($arg1)
+     * @param  int  $arg1  length
      * @return bool
      */
-    public function equalLength(int $a): bool
+    public function equalLength(int $arg1): bool
     {
-        if ($this->length === $a) {
+        if ($this->length === $arg1) {
             return true;
         }
         return false;
@@ -323,12 +322,6 @@ class Inp implements InpInterface
         return (bool)((string)$this->value !== (string)$str);
     }
 
-    public function equals($str): bool
-    {
-        return $this->equal();
-    }
-
-
     /**
      * Chech is a valid version number
      * @return bool
@@ -338,7 +331,6 @@ class Inp implements InpInterface
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
         return (bool)($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
     }
-
 
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
@@ -369,7 +361,7 @@ class Inp implements InpInterface
      */
     public function lossyPassword($length = 1): bool
     {
-        return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{'.$length.',}$/', $this->value);
+        return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value);
     }
 
     /**
@@ -387,7 +379,7 @@ class Inp implements InpInterface
     public function strictPassword($length = 1): bool
     {
         return (bool)preg_match(
-            '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{'.$length.',}$/',
+            '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/',
             $this->value
         );
     }
@@ -398,7 +390,7 @@ class Inp implements InpInterface
      */
     public function pregMatch($matchStr): bool
     {
-        return (bool)preg_match("/^[".$matchStr."]+$/", $this->value);
+        return (bool)preg_match("/^[" . $matchStr . "]+$/", $this->value);
     }
 
 
@@ -472,32 +464,32 @@ class Inp implements InpInterface
      */
     public function boolVal(): bool
     {
-        $v = strtolower(trim((string)$this->value));
-        return (bool)($v === "on" || $v === "yes" || $v === "1" || $v === "true");
+        $val = strtolower(trim((string)$this->value));
+        return (bool)($val === "on" || $val === "yes" || $val === "1" || $val === "true");
     }
 
     /**
      * Is value between two other values (1-10, a-z, 1988-08-01-1988-08-10)
-     * @param  int|float|string|date $a 10, a, 1988-08-01
-     * @param  int|float|string|date $b 20, z, 1988-08-20
+     * @param  int|float|string|date $arg1 10, a, 1988-08-01
+     * @param  int|float|string|date $arg2 20, z, 1988-08-20
      * @return bool
      */
-    public function between($a, $b): bool
+    public function between($arg1, $arg2): bool
     {
 
         if ($this->number()) {
-            return ($this->min() && $this->max());
-        } elseif (strlen($a) === 1 && strlen($b) === 1) {
-            $r = $this->rangeBetween(strtolower($a), strtolower($b));
-            $l = count($r);
-            if ($find = array_search((string)$this->value, $r)) {
-                return (bool)(($find + 1) <= $l);
+            return ($this->min($arg1) && $this->max($arg2));
+        } elseif (strlen($arg1) === 1 && strlen($arg2) === 1) {
+            $range = $this->rangeBetween(strtolower($arg1), strtolower($arg2));
+            $length = count($range);
+            if ($find = array_search((string)$this->value, $range)) {
+                return (bool)(($find + 1) <= $length);
             }
         } elseif ($this->date() || $this->dateTime()) {
             $date = new DateTime($this->value);
-            $from = new DateTime($a);
-            $to = new DateTime($b);
-            return (bool)($date >= $from && $date <= $to);
+            $fromDate = new DateTime($arg1);
+            $toDate = new DateTime($arg2);
+            return (bool)($date >= $fromDate && $date <= $toDate);
         }
 
         return false;
@@ -543,28 +535,28 @@ class Inp implements InpInterface
     {
         $exp = explode(" - ", $this->value);
         if (count($exp) === 2) {
-            $t1 = trim($exp[0]);
-            $t2 = trim($exp[1]);
-            $v1 = DateTime::createFromFormat($format, $t1);
-            $v2 = DateTime::createFromFormat($format, $t2);
-            return (bool)(($v1 && $v2 && ($v1->getTimestamp() <= $v2->getTimestamp())) ?
-                ["t1" => $t1, "t2" => $t2] : false);
+            $time1 = trim($exp[0]);
+            $time2 = trim($exp[1]);
+            $val1 = DateTime::createFromFormat($format, $time1);
+            $val2 = DateTime::createFromFormat($format, $time2);
+            return (bool)(($val1 && $val2 && ($val1->getTimestamp() <= $val2->getTimestamp())) ?
+                ["t1" => $time1, "t2" => $time2] : false);
         }
         return false;
     }
 
     /**
      * Check "minimum" age (value format should be validate date "Y-m-d")
-     * @param  int    $a 18 == user should be atleast 18 years old
+     * @param  int    $arg1 18 == user should be atleast 18 years old
      * @return [type]    [description]
      */
-    public function age(int $a): bool
+    public function age(int $arg1): bool
     {
         $now = $this->dateTime->format("Y");
         $dateTime = new \DateTime($this->value);
         $birth = $dateTime->format("Y");
         $age = (int)($now - $birth);
-        return (bool)($age >= (int)$a);
+        return (bool)($age >= (int)$arg1);
     }
 
     /**
@@ -614,12 +606,10 @@ class Inp implements InpInterface
      * Match DNS record by search for TYPE and matching VALUE
      * @param  int $type   (DNS_A, DNS_CNAME, DNS_HINFO, DNS_CAA, DNS_MX, DNS_NS, DNS_PTR, DNS_SOA,
      * DNS_TXT, DNS_AAAA, DNS_SRV, DNS_NAPTR, DNS_A6, DNS_ALL or DNS_ANY)
-     * @param  string $value IPv4, IPv6, String, txt
      * @return false/array
      */
-    public function matchDNS(int $type, string $value): bool|array
+    public function matchDNS(int $type): bool|array
     {
-
         $host = $this->value;
         $variant = INTL_IDNA_VARIANT_2003;
         if (defined('INTL_IDNA_VARIANT_UTS46')) {
@@ -627,11 +617,9 @@ class Inp implements InpInterface
         }
         $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
         $Aresult = dns_get_record($host, $type);
-
         if (is_array($Aresult) && count($Aresult) > 0) {
             return $Aresult;
         }
-
         return false;
     }
 
@@ -643,13 +631,13 @@ class Inp implements InpInterface
     public function oneOf(array $arr)
     {
         $valid = false;
-        foreach ($arr as $k => $v) {
-            if (is_array($v)) {
-                if (call_user_func_array(['self', 'length'], $v)) {
+        foreach ($arr as $val) {
+            if (is_array($val)) {
+                if (call_user_func_array(['self', 'length'], $val)) {
                     $valid = true;
                 }
             } else {
-                if ($this->{$v}()) {
+                if ($this->{$val}()) {
                     $valid = true;
                 }
             }
@@ -665,13 +653,13 @@ class Inp implements InpInterface
     public function allOf(array $arr)
     {
         $valid = true;
-        foreach ($arr as $k => $v) {
-            if (is_array($v)) {
-                if (!call_user_func_array(['self', 'length'], $v)) {
+        foreach ($arr as $val) {
+            if (is_array($val)) {
+                if (!call_user_func_array(['self', 'length'], $val)) {
                     $valid = false;
                 }
             } else {
-                if (!$this->{$v}()) {
+                if (!$this->{$val}()) {
                     $valid = false;
                 }
             }

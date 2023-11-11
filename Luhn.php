@@ -10,13 +10,14 @@
 
 namespace PHPFuse\Validate;
 
+use PHPFuse\Validate\ValidVatFormat;
+
 class Luhn
 {
     private $number;
     private $length;
     private $string;
     private $part;
-
 
     /**
      * Start intsance and input Value
@@ -34,7 +35,7 @@ class Luhn
      * Validate Swedish security number
      * @return bool
      */
-    public function socialNumber()
+    public function socialNumber(): bool
     {
         $this->part = $this->part();
         if (in_array('', $this->part, true)) {
@@ -54,7 +55,7 @@ class Luhn
      * Check if a Swedish social security number is for a male.
      * @return bool
      */
-    public function isMale()
+    public function isMale(): bool
     {
         $this->part = $this->part();
         $genderDigit = substr($this->part['num'], -1);
@@ -65,7 +66,7 @@ class Luhn
      * Check if a Swedish social security number is for a female.
      * @return bool
      */
-    public function isFemale()
+    public function isFemale(): bool
     {
         return !$this->isMale();
     }
@@ -74,12 +75,16 @@ class Luhn
      * Validate Swedish security number
      * @return bool
      */
-    public function personnummer()
+    public function personnummer(): bool
     {
         return $this->socialNumber();
     }
 
-    public function orgNumber()
+    /**
+     * Get org. number
+     * @return bool
+     */
+    public function orgNumber(): bool
     {
         $num = substr($this->number, 0, 10);
         $sum = $this->luhn($num);
@@ -99,8 +104,11 @@ class Luhn
     }
      */
 
-    // BEHÖVS TESTAS
-    public function creditcard()
+    /**
+     * Is valid creditcard number
+     * @return bool
+     */
+    public function creditcard(): bool
     {
         if ($this->cardPrefix()) {
             $sum = $this->luhn($this->number);
@@ -109,9 +117,12 @@ class Luhn
         return false;
     }
 
-    public function cardPrefix()
+    /**
+     * Get card type
+     * @return string|bool
+     */
+    public function cardPrefix(): string|bool
     {
-
         $arr = [
             'visaelectron' => '/^4(026|17500|405|508|844|91[37])/',
             'maestro' => '/^(5(018|0[23]|[68])|6(39|7))/',
@@ -131,15 +142,16 @@ class Luhn
                 return $card;
             }
         }
-
         return false;
     }
 
-
-    // FLYTTA TILL NYTT RAMVERK (VISSA LÄNDER HAR CHECK DIGITS ex. MOD 11-2)
-    public function vatNumber()
+    /**
+     * Validate Vat
+     * @return bool
+     */
+    public function vatNumber(): bool
     {
-        $vat = new Vat($this->string);
+        $vat = new ValidVatFormat($this->string);
         if ($vat->validate()) {
             if ($vat->countryCode() === "SE") {
                 return $this->orgNumber();
@@ -150,67 +162,17 @@ class Luhn
         return false;
     }
 
-
     /**
-     * The Luhn algorithm.
-     * @param string str
-     * @return int
+     * Chech if is a date
+     * @return boolean
      */
-    protected function luhn($number)
-    {
-        $sum = $v = 0;
-        for ($i = 0; $i < strlen($number); $i++) {
-            $v = (int)$number[$i];
-            $v *= 2 - ($i % 2);
-            if ($v > 9) {
-                $v -= 9;
-            }
-            $sum += $v;
-        }
-
-        return (ceil($sum / 10) * 10 - $sum);
-    }
-
-    /**
-     * Format Swedish social security numbers to official format
-     * @param string|int $str
-     * @param bool $longFormat YYMMDD-XXXX or YYYYMMDDXXXX since the tax office says both are official
-     * @return string
-     */
-    public function format($str, $longFormat = false)
-    {
-        if (!$this->validate($str)) {
-            return '';
-        }
-
-        $parts = $this->part($str);
-        $format = ($longFormat) ? '%1$s%2$s%3$s%4$s%6$s%7$s' : '%2$s%3$s%4$s%5$s%6$s%7$s';
-
-        $return = sprintf(
-            $format,
-            $parts['century'],
-            $parts['year'],
-            $parts['month'],
-            $parts['day'],
-            $parts['sep'],
-            $parts['num'],
-            $parts['check']
-        );
-        return $return;
-    }
-
-    public function isDate()
+    public function isDate(): bool
     {
         return checkdate(
             $this->getPart('month'),
             $this->getPart('day'),
-            $this->getPart('century').$this->getPart('year')
+            $this->getPart('century') . $this->getPart('year')
         );
-    }
-
-    public function getPart($k)
-    {
-        return ($this->part[$k] ??  0);
     }
 
     /**
@@ -224,17 +186,36 @@ class Luhn
         return checkdate(
             $this->getPart('month'),
             ((int)$this->getPart('day') - 60),
-            $this->getPart('century').$this->getPart('year')
+            $this->getPart('century') . $this->getPart('year')
         );
     }
 
+    /**
+     * The Luhn algorithm.
+     * @param string str
+     * @return int
+     */
+    final protected function luhn($number)
+    {
+        $sum = $val = 0;
+        for ($i = 0; $i < strlen($number); $i++) {
+            $val = (int)$number[$i];
+            $val *= 2 - ($i % 2);
+            if ($val > 9) {
+                $val -= 9;
+            }
+            $sum += $val;
+        }
+
+        return (ceil($sum / 10) * 10 - $sum);
+    }
 
     /**
      * Parse Swedish social security numbers and get the parts
      * @param string $str
      * @return array
      */
-    private function part()
+    final protected function part()
     {
 
         $reg = '/^(\d{2}){0,1}(\d{2})(\d{2})(\d{2})([\+\-\s]?)(\d{3})(\d)$/';
@@ -276,5 +257,15 @@ class Luhn
             'num' => $num,
             'check' => $check
         );
+    }
+
+    /**
+     * Get part
+     * @param  string $key
+     * @return string
+     */
+    final protected function getPart(string $key): ?string
+    {
+        return ($this->part[$key] ??  "0");
     }
 }
