@@ -76,7 +76,6 @@ class ValidVatFormat
 
     /**
      * Validate a VAT number format. This does not check whether the VAT number was really issued.
-     * @param string $vatNumber
      * @return boolean
      */
     public function validate()

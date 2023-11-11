@@ -22,10 +22,10 @@ class Inp implements InpInterface
 
     /**
      * Start instance
-     * @param  ALL $value the input value
-     * @return new self
+     * @param  string $value the input value
+     * @return self
      */
-    public static function value($value): self
+    public static function value(string $value): self
     {
         $inst = new self();
         $inst->value = $value;
@@ -36,17 +36,17 @@ class Inp implements InpInterface
 
     /**
      * Get value string length
-     * @param  [type] $value [description]
-     * @return [type]        [description]
+     * @param  string $value
+     * @return int
      */
-    public function getLength($value): int
+    public function getLength(string $value): int
     {
         return strlen($value);
     }
 
     /**
      * Access luhn validation class
-     * @return instance (Form\Luhn)
+     * @return Luhn
      */
     public function luhn(): Luhn
     {
@@ -470,11 +470,11 @@ class Inp implements InpInterface
 
     /**
      * Is value between two other values (1-10, a-z, 1988-08-01-1988-08-10)
-     * @param  int|float|string|date $arg1 10, a, 1988-08-01
-     * @param  int|float|string|date $arg2 20, z, 1988-08-20
+     * @param  int|float|string|DateTime $arg1 10, a, 1988-08-01
+     * @param  int|float|string|DateTime $arg2 20, z, 1988-08-20
      * @return bool
      */
-    public function between($arg1, $arg2): bool
+    public function between(int|float|string|DateTime $arg1, int|float|string|DateTime $arg2): bool
     {
 
         if ($this->number()) {
@@ -587,12 +587,16 @@ class Inp implements InpInterface
 
     /**
      * Check if "Host|domain" has an valid DNS (will check A, AAAA and MX)
+     * @psalm-suppress UndefinedConstant
      * @return bool
      */
     public function dns(): bool
     {
         $host = $this->value;
         $Aresult = true;
+        if (!defined('INTL_IDNA_VARIANT_2003')) {
+            define('INTL_IDNA_VARIANT_2003', 0);
+        }
         $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
         $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
         $MXresult = checkdnsrr($host, 'MX');
@@ -611,6 +615,9 @@ class Inp implements InpInterface
     public function matchDNS(int $type): bool|array
     {
         $host = $this->value;
+        if (!defined('INTL_IDNA_VARIANT_2003')) {
+            define('INTL_IDNA_VARIANT_2003', 0);
+        }
         $variant = INTL_IDNA_VARIANT_2003;
         if (defined('INTL_IDNA_VARIANT_UTS46')) {
             $variant = INTL_IDNA_VARIANT_UTS46;
@@ -625,7 +632,7 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "one" matches
-     * @param  arrayt $arr [description]
+     * @param  array $arr [description]
      * @return mixed
      */
     public function oneOf(array $arr)

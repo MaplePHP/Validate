@@ -11,5 +11,5 @@ namespace PHPFuse\Validate\Interfaces;
 
 interface InpInterface
 {
-    public static function value($value): self;
+    public static function value(string $value): self;
 }

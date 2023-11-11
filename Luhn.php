@@ -197,14 +197,14 @@ class Luhn
      */
     final protected function luhn($number)
     {
-        $sum = $val = 0;
+        $_val = $sum = 0;
         for ($i = 0; $i < strlen($number); $i++) {
-            $val = (int)$number[$i];
-            $val *= 2 - ($i % 2);
-            if ($val > 9) {
-                $val -= 9;
+            $_val = (int)$number[$i];
+            $_val *= 2 - ($i % 2);
+            if ($_val > 9) {
+                $_val -= 9;
             }
-            $sum += $val;
+            $sum += $_val;
         }
 
         return (ceil($sum / 10) * 10 - $sum);
@@ -212,7 +212,6 @@ class Luhn
 
     /**
      * Parse Swedish social security numbers and get the parts
-     * @param string $str
      * @return array
      */
     final protected function part()
