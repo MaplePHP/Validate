@@ -58,7 +58,7 @@ class Luhn
     public function isMale(): bool
     {
         $this->part = $this->part();
-        $genderDigit = substr($this->part['num'], -1);
+        $genderDigit = (int)substr($this->part['num'], -1);
         return boolval($genderDigit % 2);
     }
 
@@ -88,7 +88,7 @@ class Luhn
     {
         $num = substr($this->number, 0, 10);
         $sum = $this->luhn($num);
-        return (bool)((int)$sum === 0);
+        return ((int)$sum === 0);
     }
 
     /*
@@ -112,7 +112,7 @@ class Luhn
     {
         if ($this->cardPrefix()) {
             $sum = $this->luhn($this->number);
-            return (bool)((int)$sum === 0);
+            return ((int)$sum === 0);
         }
         return false;
     }
@@ -153,7 +153,7 @@ class Luhn
     {
         $vat = new ValidVatFormat($this->string);
         if ($vat->validate()) {
-            if ($vat->countryCode() === "SE") {
+            if ($vat->getCountryCode() === "SE") {
                 return $this->orgNumber();
             }
             return true;
@@ -171,7 +171,7 @@ class Luhn
         return checkdate(
             $this->getPart('month'),
             $this->getPart('day'),
-            $this->getPart('century') . $this->getPart('year')
+            (int)($this->getPart('century') . $this->getPart('year'))
         );
     }
 
@@ -185,17 +185,17 @@ class Luhn
     {
         return checkdate(
             $this->getPart('month'),
-            ((int)$this->getPart('day') - 60),
-            $this->getPart('century') . $this->getPart('year')
+            ($this->getPart('day') - 60),
+            (int)($this->getPart('century') . $this->getPart('year'))
         );
     }
 
     /**
      * The Luhn algorithm.
      * @param string str
-     * @return int
+     * @return float
      */
-    final protected function luhn($number)
+    final protected function luhn($number): float
     {
         $_val = $sum = 0;
         for ($i = 0; $i < strlen($number); $i++) {
@@ -216,15 +216,15 @@ class Luhn
      */
     final protected function part()
     {
-
+        $match = array();
         $reg = '/^(\d{2}){0,1}(\d{2})(\d{2})(\d{2})([\+\-\s]?)(\d{3})(\d)$/';
         preg_match($reg, $this->number, $match);
-        if (!isset($match) || count($match) !== 8) {
+        if (count($match) !== 8) {
             return array();
         }
 
         $century = $match[1];
-        $year    = $match[2];
+        $year    = (int)$match[2];
         $month   = $match[3];
         $day     = $match[4];
         $sep     = $match[5];
@@ -244,7 +244,7 @@ class Luhn
             } else {
                 $baseYear = date('Y');
             }
-            $century = substr(($baseYear - (($baseYear - $year) % 100)), 0, 2);
+            $century = substr((string)($baseYear - (($baseYear - $year) % 100)), 0, 2);
         }
 
         return array(
@@ -261,10 +261,10 @@ class Luhn
     /**
      * Get part
      * @param  string $key
-     * @return string
+     * @return int
      */
-    final protected function getPart(string $key): ?string
+    final protected function getPart(string $key): int
     {
-        return ($this->part[$key] ??  "0");
+        return (int)($this->part[$key] ??  "0");
     }
 }

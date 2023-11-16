@@ -58,30 +58,30 @@ class ValidVatFormat
 
     /**
      * Validate a VAT country and if is EU.
-     * @return boolean
+     * @return bool
      */
-    public function validateCountry()
+    public function validateCountry(): bool
     {
-        return (bool)(isset($this::PATTERNS[$this->country]));
+        return (isset($this::PATTERNS[$this->country]));
     }
 
     /**
      * Get the selected country code
-     * @return [type] [description]
+     * @return string|null
      */
-    public function getCountryCode()
+    public function getCountryCode(): ?string
     {
         return $this->country;
     }
 
     /**
      * Validate a VAT number format. This does not check whether the VAT number was really issued.
-     * @return boolean
+     * @return bool
      */
-    public function validate()
+    public function validate(): bool
     {
         if (is_string($this->number) && $this->validateCountry()) {
-            return preg_match('/^' . $this::PATTERNS[$this->country] . '$/', $this->number) > 0;
+            return (preg_match('/^' . $this::PATTERNS[$this->country] . '$/', $this->number) > 0);
         }
         return false;
     }

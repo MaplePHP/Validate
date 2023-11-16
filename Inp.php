@@ -130,7 +130,7 @@ class Inp implements InpInterface
      */
     public function email(): bool
     {
-        return (bool)(filter_var($this->value, FILTER_VALIDATE_EMAIL));
+        return (filter_var($this->value, FILTER_VALIDATE_EMAIL) !== false);
     }
 
     /**
@@ -141,20 +141,9 @@ class Inp implements InpInterface
      */
     public function findInString(string $match, ?int $pos = null): bool
     {
-        return (bool)((is_null($pos) && strpos($this->value, $match) !== false) ||
-            (!is_null($pos) && strpos($this->value, $match) === $pos));
+        return ((is_null($pos) && strpos($this->value, $match) !== false) ||
+                (!is_null($pos) && strpos($this->value, $match) === $pos));
     }
-
-    /**
-     * Alternative "Find in string" @findInString()
-     */
-    public function strpos(string $match, ?int $pos = null): bool
-    {
-        $match = (is_null($pos)) ? false : $pos;
-        return (bool)((is_null($pos) && strpos($this->value, $match) !== $pos) ||
-            (!is_null($pos) && strpos($this->value, $match) === $pos));
-    }
-
 
     /**
      * Check if is phone
@@ -165,7 +154,7 @@ class Inp implements InpInterface
         $val = str_replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""], $this->value);
         $match = preg_match('/^[0-9]{7,14}+$/', $val);
         $strict = preg_match('/^\+[0-9]{1,2}[0-9]{6,13}$/', $val);
-        return (bool)($strict || $match);
+        return ($strict || $match);
     }
 
     /**
@@ -178,7 +167,7 @@ class Inp implements InpInterface
     {
         $this->value = str_replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
         $this->length = $this->getLength($this->value);
-        return (bool)($this->int() && $this->length($arg1, $arg2));
+        return ($this->int() && $this->length($arg1, $arg2));
     }
 
     /**
@@ -187,7 +176,7 @@ class Inp implements InpInterface
      */
     public function number(): bool
     {
-        return (bool)(is_numeric($this->value));
+        return (is_numeric($this->value));
     }
 
     public function numeric(): bool
@@ -206,7 +195,7 @@ class Inp implements InpInterface
      */
     public function positive(): bool
     {
-        return (bool)((float)$this->value >= 0);
+        return ((float)$this->value >= 0);
     }
 
     /**
@@ -215,7 +204,7 @@ class Inp implements InpInterface
      */
     public function negative(): bool
     {
-        return (bool)((float)$this->value < 0);
+        return ((float)$this->value < 0);
     }
 
     /**
@@ -224,7 +213,7 @@ class Inp implements InpInterface
      */
     public function min(float $int): bool
     {
-        return (bool)((float)$this->value >= $int);
+        return ((float)$this->value >= $int);
     }
 
     /**
@@ -242,7 +231,7 @@ class Inp implements InpInterface
      */
     public function max(float $int): bool
     {
-        return (bool)((float)$this->value <= $int);
+        return ((float)$this->value <= $int);
     }
 
     /**
@@ -251,7 +240,7 @@ class Inp implements InpInterface
      */
     public function float(): bool
     {
-        return (bool)filter_var($this->value, FILTER_VALIDATE_FLOAT);
+        return (filter_var($this->value, FILTER_VALIDATE_FLOAT) !== false);
     }
 
     /**
@@ -260,7 +249,7 @@ class Inp implements InpInterface
      */
     public function int(): bool
     {
-        return (bool)filter_var($this->value, FILTER_VALIDATE_INT);
+        return (filter_var($this->value, FILTER_VALIDATE_INT) !== false);
     }
 
     /**
@@ -287,8 +276,8 @@ class Inp implements InpInterface
     public function hasLength(string $key, int $arg1, int $arg2 = null): bool
     {
         $post = ($_POST[$key] ?? 0);
-        $continue = (bool)((int)$post === 1);
-        return (bool)(!$continue || $this->length($arg1, $arg2));
+        $continue = ((int)$post === 1);
+        return (!$continue || $this->length($arg1, $arg2));
     }
 
     /**
@@ -310,7 +299,7 @@ class Inp implements InpInterface
      */
     public function equal($str): bool
     {
-        return (bool)((string)$this->value === (string)$str);
+        return ((string)$this->value === (string)$str);
     }
 
     /**
@@ -319,7 +308,7 @@ class Inp implements InpInterface
      */
     public function notEqual($str): bool
     {
-        return (bool)((string)$this->value !== (string)$str);
+        return ((string)$this->value !== (string)$str);
     }
 
     /**
@@ -329,7 +318,7 @@ class Inp implements InpInterface
     public function validVersion($strict = false): bool
     {
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
-        return (bool)($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
+        return ($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
     }
 
     /**
@@ -340,7 +329,7 @@ class Inp implements InpInterface
      */
     public function versionCompare(string $withVersion, string $operator = ">="): bool
     {
-        return (bool)(version_compare((string)$this->value, $withVersion, $operator) >= 0);
+        return (version_compare((string)$this->value, $withVersion, $operator) >= 0);
     }
 
     /**
@@ -349,7 +338,7 @@ class Inp implements InpInterface
      */
     public function string(): bool
     {
-        return (bool)(is_string($this->value));
+        return (is_string($this->value));
     }
 
     /**
@@ -357,11 +346,11 @@ class Inp implements InpInterface
      * [a-zA-Z\d$@$!%*?&] - Matches "any" letter (uppercase or lowercase), digit, or special character
      * from the allowed set of special characters
      * @param  integer $length Minimum length
-     * @return [type]          [description]
+     * @return bool
      */
     public function lossyPassword($length = 1): bool
     {
-        return (bool)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value);
+        return (preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) !== false);
     }
 
     /**
@@ -378,10 +367,8 @@ class Inp implements InpInterface
      */
     public function strictPassword($length = 1): bool
     {
-        return (bool)preg_match(
-            '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/',
-            $this->value
-        );
+        $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/';
+        return (preg_match($pattern, $this->value) !== false);
     }
 
     /**
@@ -390,7 +377,7 @@ class Inp implements InpInterface
      */
     public function pregMatch($matchStr): bool
     {
-        return (bool)preg_match("/^[" . $matchStr . "]+$/", $this->value);
+        return (preg_match("/^[" . $matchStr . "]+$/", $this->value) !== false);
     }
 
 
@@ -400,7 +387,7 @@ class Inp implements InpInterface
      */
     public function atoZ(): bool
     {
-        return (bool)preg_match("/^[a-zA-Z]+$/", $this->value);
+        return (preg_match("/^[a-zA-Z]+$/", $this->value) !== false);
     }
 
     /**
@@ -409,7 +396,7 @@ class Inp implements InpInterface
      */
     public function lowerAtoZ(): bool
     {
-        return (bool)preg_match("/^[a-z]+$/", $this->value);
+        return (preg_match("/^[a-z]+$/", $this->value) !== false);
     }
 
     /**
@@ -418,7 +405,7 @@ class Inp implements InpInterface
      */
     public function upperAtoZ(): bool
     {
-        return (bool)preg_match("/^[A-Z]+$/", $this->value);
+        return (preg_match("/^[A-Z]+$/", $this->value) !== false);
     }
 
 
@@ -428,7 +415,7 @@ class Inp implements InpInterface
      */
     public function hex(): bool
     {
-        return preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value);
+        return (preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) !== false);
     }
 
     /**
@@ -437,7 +424,7 @@ class Inp implements InpInterface
      */
     public function isArray(): bool
     {
-        return (bool)(is_array($this->value));
+        return (is_array($this->value));
     }
 
     /**
@@ -446,7 +433,7 @@ class Inp implements InpInterface
      */
     public function isObject(): bool
     {
-        return (bool)(is_object($this->value));
+        return (is_object($this->value));
     }
 
     /**
@@ -455,7 +442,7 @@ class Inp implements InpInterface
      */
     public function bool(): bool
     {
-        return (bool)(is_bool($this->value));
+        return (is_bool($this->value));
     }
 
     /**
@@ -465,42 +452,15 @@ class Inp implements InpInterface
     public function boolVal(): bool
     {
         $val = strtolower(trim((string)$this->value));
-        return (bool)($val === "on" || $val === "yes" || $val === "1" || $val === "true");
-    }
-
-    /**
-     * Is value between two other values (1-10, a-z, 1988-08-01-1988-08-10)
-     * @param  int|float|string|DateTime $arg1 10, a, 1988-08-01
-     * @param  int|float|string|DateTime $arg2 20, z, 1988-08-20
-     * @return bool
-     */
-    public function between(int|float|string|DateTime $arg1, int|float|string|DateTime $arg2): bool
-    {
-
-        if ($this->number()) {
-            return ($this->min($arg1) && $this->max($arg2));
-        } elseif (strlen($arg1) === 1 && strlen($arg2) === 1) {
-            $range = $this->rangeBetween(strtolower($arg1), strtolower($arg2));
-            $length = count($range);
-            if ($find = array_search((string)$this->value, $range)) {
-                return (bool)(($find + 1) <= $length);
-            }
-        } elseif ($this->date() || $this->dateTime()) {
-            $date = new DateTime($this->value);
-            $fromDate = new DateTime($arg1);
-            $toDate = new DateTime($arg2);
-            return (bool)($date >= $fromDate && $date <= $toDate);
-        }
-
-        return false;
+        return ($val === "on" || $val === "yes" || $val === "1" || $val === "true");
     }
 
     /**
      * Check if is a date
      * @param  string $format validate after this date format (default Y-m-d)
-     * @return bool|inst(dateTime)
+     * @return DateTime|false
      */
-    public function date($format = "Y-m-d"): bool|DateTime
+    public function date($format = "Y-m-d"): DateTime|false
     {
         return DateTime::createFromFormat($format, $this->value);
     }
@@ -509,9 +469,9 @@ class Inp implements InpInterface
     /**
      * Check if is a date and time
      * @param  string  $format  validate after this date format (default Y-m-d H:i)
-     * @return bool|inst(dateTime)
+     * @return DateTime|false
      */
-    public function dateTime($format = "Y-m-d H:i"): bool|DateTime
+    public function dateTime($format = "Y-m-d H:i"): DateTime|false
     {
         return $this->date($format);
     }
@@ -519,9 +479,9 @@ class Inp implements InpInterface
     /**
      * Check if is a date and time
      * @param  string  $format  validate after this date format (default Y-m-d H:i)
-     * @return bool|inst(dateTime)
+     * @return DateTime|false
      */
-    public function time($format = "H:i"): bool|DateTime
+    public function time($format = "H:i"): DateTime|false
     {
         return $this->date($format);
     }
@@ -529,9 +489,9 @@ class Inp implements InpInterface
     /**
      * Check if is a date and a "valid range"
      * @param  string $format validate after this date format (default Y-m-d H:i)
-     * @return bool / array(T1, T2); T1 = start and T2 = end
+     * @return array|false E.g array(T1, T2); T1 = start and T2 = end
      */
-    public function dateRange($format = "Y-m-d H:i"): bool
+    public function dateRange($format = "Y-m-d H:i"): array|false
     {
         $exp = explode(" - ", $this->value);
         if (count($exp) === 2) {
@@ -539,7 +499,7 @@ class Inp implements InpInterface
             $time2 = trim($exp[1]);
             $val1 = DateTime::createFromFormat($format, $time1);
             $val2 = DateTime::createFromFormat($format, $time2);
-            return (bool)(($val1 && $val2 && ($val1->getTimestamp() <= $val2->getTimestamp())) ?
+            return (($val1 && $val2 && ($val1->getTimestamp() <= $val2->getTimestamp())) ?
                 ["t1" => $time1, "t2" => $time2] : false);
         }
         return false;
@@ -548,7 +508,7 @@ class Inp implements InpInterface
     /**
      * Check "minimum" age (value format should be validate date "Y-m-d")
      * @param  int    $arg1 18 == user should be atleast 18 years old
-     * @return [type]    [description]
+     * @return bool
      */
     public function age(int $arg1): bool
     {
@@ -556,7 +516,7 @@ class Inp implements InpInterface
         $dateTime = new \DateTime($this->value);
         $birth = $dateTime->format("Y");
         $age = (int)($now - $birth);
-        return (bool)($age >= (int)$arg1);
+        return ($age >= $arg1);
     }
 
     /**
@@ -567,7 +527,7 @@ class Inp implements InpInterface
     public function domain($flag = true): bool
     {
         $flag = ($flag) ? FILTER_FLAG_HOSTNAME : false;
-        return (bool)filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $flag);
+        return (filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $flag) !== false);
     }
 
     /**
@@ -582,7 +542,7 @@ class Inp implements InpInterface
         $val = str_replace(['{{root}}', '{{url}}'], ["https://example.se", "https://example.se/"], $val);
         $val = str_replace(["å", "ä", "ö"], ["a", "a", "o"], strtolower($val));
 
-        return (bool)filter_var($val, FILTER_VALIDATE_URL);
+        return (filter_var($val, FILTER_VALIDATE_URL) !== false);
     }
 
     /**
@@ -603,16 +563,16 @@ class Inp implements InpInterface
         if (!$MXresult) {
             $Aresult = checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA');
         }
-        return (bool)($MXresult || $Aresult);
+        return ($MXresult || $Aresult);
     }
 
     /**
      * Match DNS record by search for TYPE and matching VALUE
      * @param  int $type   (DNS_A, DNS_CNAME, DNS_HINFO, DNS_CAA, DNS_MX, DNS_NS, DNS_PTR, DNS_SOA,
      * DNS_TXT, DNS_AAAA, DNS_SRV, DNS_NAPTR, DNS_A6, DNS_ALL or DNS_ANY)
-     * @return false/array
+     * @return array|false
      */
-    public function matchDNS(int $type): bool|array
+    public function matchDNS(int $type): array|false
     {
         $host = $this->value;
         if (!defined('INTL_IDNA_VARIANT_2003')) {
