@@ -10,15 +10,49 @@
 namespace PHPFuse\Validate;
 
 use PHPFuse\Validate\Interfaces\InpInterface;
-use DateTime;
 use PHPFuse\Validate\Luhn;
+use PHPFuse\DTO\Format\Str;
+use InvalidArgumentException;
+use DateTime;
 
 class Inp implements InpInterface
 {
+    const WHITELIST_OPERATORS = [
+        '!=',
+        '<',
+        '<=',
+        '<>',
+        '=',
+        '==',
+        '>',
+        '>=',
+        'eq',
+        'ge',
+        'gt',
+        'le',
+        'lt',
+        'ne'
+    ];
+
     private $value;
     private $length;
     private $dateTime;
     private $luhn;
+    private $getStr;
+
+
+    /**
+     * Start instance
+     * @param  string $value the input value
+     * @return self
+     */
+    public function __construct(string $value)
+    {
+        $this->value = $value;
+        $this->length = $this->getLength($value);
+        $this->dateTime = new DateTime("now");
+        $this->getStr = new Str($this->value);
+    }
 
     /**
      * Start instance
@@ -27,11 +61,7 @@ class Inp implements InpInterface
      */
     public static function value(string $value): self
     {
-        $inst = new self();
-        $inst->value = $value;
-        $inst->length = $inst->getLength($value);
-        $inst->dateTime = new DateTime("now");
-        return $inst;
+        return new self($value);
     }
 
     /**
@@ -151,7 +181,7 @@ class Inp implements InpInterface
      */
     public function phone(): bool
     {
-        $val = str_replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""], $this->value);
+        $val = (string)$this->getStr->replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""]);
         $match = preg_match('/^[0-9]{7,14}+$/', $val);
         $strict = preg_match('/^\+[0-9]{1,2}[0-9]{6,13}$/', $val);
         return ($strict || $match);
@@ -165,7 +195,7 @@ class Inp implements InpInterface
      */
     public function zip(int $arg1, int $arg2 = null): bool
     {
-        $this->value = str_replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
+        $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
         $this->length = $this->getLength($this->value);
         return ($this->int() && $this->length($arg1, $arg2));
     }
@@ -267,20 +297,6 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value string length of OTHER field is more than start ($arg1) or between start ($arg1) and end ($arg2)
-     * @param  string   $key    HTTP Post KEY
-     * @param  int      $arg1      start length
-     * @param  int|null $arg2      end length
-     * @return bool
-     */
-    public function hasLength(string $key, int $arg1, int $arg2 = null): bool
-    {
-        $post = ($_POST[$key] ?? 0);
-        $continue = ((int)$post === 1);
-        return (!$continue || $this->length($arg1, $arg2));
-    }
-
-    /**
      * Value string length is equal to ($arg1)
      * @param  int  $arg1  length
      * @return bool
@@ -323,13 +339,16 @@ class Inp implements InpInterface
 
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
-     * @param  string $withVersion [description]
-     * @param  string $operator    [description]
+     * @param  string $withVersion
+     * @param  '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne' $operator
      * @return bool
      */
     public function versionCompare(string $withVersion, string $operator = ">="): bool
     {
-        return (version_compare((string)$this->value, $withVersion, $operator) >= 0);
+        if (in_array($operator, self::WHITELIST_OPERATORS)) {
+            return (version_compare((string)$this->value, $withVersion, $operator) >= 0);
+        }
+        return false;
     }
 
     /**
@@ -521,13 +540,13 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid domain
-     * @param  boolean $flag stricter = true
+     * @param  bool $strict stricter = true
      * @return bool
      */
-    public function domain($flag = true): bool
+    public function domain(bool $strict = true): bool
     {
-        $flag = ($flag) ? FILTER_FLAG_HOSTNAME : false;
-        return (filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $flag) !== false);
+        $strict = ($strict) ? FILTER_FLAG_HOSTNAME : 0;
+        return (filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $strict) !== false);
     }
 
     /**
@@ -536,13 +555,7 @@ class Inp implements InpInterface
      */
     public function url(): bool
     {
-        $val = (string)$this->value;
-
-        // Only used to pass validation will not change any data
-        $val = str_replace(['{{root}}', '{{url}}'], ["https://example.se", "https://example.se/"], $val);
-        $val = str_replace(["å", "ä", "ö"], ["a", "a", "o"], strtolower($val));
-
-        return (filter_var($val, FILTER_VALIDATE_URL) !== false);
+        return (filter_var($this->value, FILTER_VALIDATE_URL) !== false);
     }
 
     /**

@@ -28,7 +28,7 @@ class Luhn
 
         $this->string = preg_replace('/[^A-Z\d]/', '', strtoupper($number));
         $this->number = preg_replace('/\D/', '', $number);
-        $this->length = strlen($this->number);
+        $this->length = (is_string($this->number)) ? strlen($this->number) : 0;
     }
 
     /**
