@@ -1,17 +1,17 @@
 <?php
 
 /**
- * @Package:    PHP Fuse - Input validation library
+ * @Package:    MaplePHP - Input validation library
  * @Author:     Daniel Ronkainen
- * @Licence:    The MIT License (MIT), Copyright © Daniel Ronkainen
+ * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
                 Don't delete this comment, its part of the license.
  */
 
-namespace PHPFuse\Validate;
+namespace MaplePHP\Validate;
 
-use PHPFuse\Validate\Interfaces\InpInterface;
-use PHPFuse\Validate\Luhn;
-use PHPFuse\DTO\Format\Str;
+use MaplePHP\Validate\Interfaces\InpInterface;
+use MaplePHP\Validate\Luhn;
+use MaplePHP\DTO\Format\Str;
 use InvalidArgumentException;
 use DateTime;
 

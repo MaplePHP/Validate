@@ -1,14 +1,14 @@
 <?php
 
 /**
- * @Package:    PHP Fuse - Validate vat number
+ * @Package:    MaplePHP - Validate vat number
  * @Author:     Daniel Ronkainen
- * @Licence:    The MIT License (MIT), Copyright © Daniel Ronkainen
+ * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
                 Don't delete this comment, its part of the license.
  * @Version:    1.0.0
  */
 
-namespace PHPFuse\Validate;
+namespace MaplePHP\Validate;
 
 class ValidVatFormat
 {

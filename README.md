@@ -1,4 +1,4 @@
-# Fuse - Validation
+# MaplePHP - Validation
 Validate inputs. Open the file "Inp.php" for a lot more validations.
 
 ### Initiation
