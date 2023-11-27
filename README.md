@@ -29,7 +29,7 @@ Inp::value("Lorem ipsum dolor")->length(1, 160);
 Inp::value("john@gmail.com")->email();
 ```
 ### Check if is valid phone
-Will allow only numbers and some characters like (”-”, ”+” and ” ”).
+Will allow only numbers and some characters like ("-", "+" and " ").
 ```php
 Inp::value("+46709676040")->phone();
 ```
@@ -55,15 +55,17 @@ Inp::value("#000000")->hex();
 ```
 ### Check date and date format
 ```php
-Inp::value("2022/02/13 14:15")->date(”Y/m/d H:i”);
+Inp::value("2022/02/13 14:15")->date("Y/m/d H:i");
+// The date argument is the expected date format (will also take time)
 ```
 ### Check date, date format and is between a range
 ```php
-Inp::value("2022/02/13 - 2022/02/26")->date(”Y/m/d”);
+Inp::value("2022/02/13 - 2022/02/26")->dateRange("Y/m/d"); 
+// The dateRange argument is the expected date format (will also take time)
 ```
 ### Check if persons is at least 18 years old or older.
 ```php
-Inp::value("1988-05-22")->age(”18”);
+Inp::value("1988-05-22")->age("18");
 ```
 ### Check if is a valid domain name
 ```php
