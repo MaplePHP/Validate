@@ -24,11 +24,11 @@ Inp::value("Lorem ipsum dolor")->length(1);
 ```php
 Inp::value("Lorem ipsum dolor")->length(1, 160);
 ```
-### check if is valid email
+### Check if is valid email
 ```php
 Inp::value("john@gmail.com")->email();
 ```
-### check if is valid phone
+### Check if is valid phone
 Will allow only numbers and some characters like (”-”, ”+” and ” ”).
 ```php
 Inp::value("+46709676040")->phone();
@@ -61,9 +61,9 @@ Inp::value("2022/02/13 14:15")->date(”Y/m/d H:i”);
 ```php
 Inp::value("2022/02/13 - 2022/02/26")->date(”Y/m/d”);
 ```
-### Check if persons is at least 18 years old or more.
+### Check if persons is at least 18 years old or older.
 ```php
-Inp::value("2001/05/22")->age(”18”);
+Inp::value("1988-05-22")->age(”18”);
 ```
 ### Check if is a valid domain name
 ```php
