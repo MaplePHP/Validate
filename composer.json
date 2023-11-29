@@ -1,0 +1,28 @@
+{
+    "name": "maplephp/validate",
+    "type": "library",
+    "description": "User-friendly input validation library.",
+    "keywords": ["validation", "input", "data", "validate request"],
+    "homepage": "https://wazabii.se",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Daniel Ronkainen",
+            "email": "daniel.ronkainen@wazabii.se"
+        },
+        {
+            "name": "MaplePHP",
+            "homepage": "https://wazabii.se"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "maplephp/dto": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MaplePHP\\Validate\\": ""
+        }
+    },
+    "minimum-stability": "dev"
+}
