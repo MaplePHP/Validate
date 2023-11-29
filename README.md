@@ -1,11 +1,16 @@
 # MaplePHP - Validation
 MaplePHP - Validation is a PHP library designed to simplify the process of validating various data inputs. Whether you need to verify if a value is an email or phone number, check for minimum and maximum length constraints, or perform other common validation tasks, MaplePHP - Validation provides a convenient and straightforward solution for handling input validation.
 
-### Initiation
+## Installation
+```
+composer require maplephp/validate
+```
+
+## Initiation
 You will always initiate instace with the static method **_val** followed by a value you want to validate.
 
 ```php
-use Validate\Inp;
+use MaplePHP\Validate\Inp;
 
 // Validate option 1
 $inp = new Inp("Lorem ipsum dolor");
