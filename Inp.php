@@ -369,7 +369,7 @@ class Inp implements InpInterface
      */
     public function lossyPassword($length = 1): bool
     {
-        return (preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) !== false);
+        return ((int)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) > 0);
     }
 
     /**
@@ -387,7 +387,7 @@ class Inp implements InpInterface
     public function strictPassword($length = 1): bool
     {
         $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/';
-        return (preg_match($pattern, $this->value) !== false);
+        return ((int)preg_match($pattern, $this->value) > 0);
     }
 
     /**
@@ -396,7 +396,7 @@ class Inp implements InpInterface
      */
     public function pregMatch($matchStr): bool
     {
-        return (preg_match("/^[" . $matchStr . "]+$/", $this->value) !== false);
+        return ((int)preg_match("/^[" . $matchStr . "]+$/", $this->value) > 0);
     }
 
 
@@ -406,7 +406,7 @@ class Inp implements InpInterface
      */
     public function atoZ(): bool
     {
-        return (preg_match("/^[a-zA-Z]+$/", $this->value) !== false);
+        return ((int)preg_match("/^[a-zA-Z]+$/", $this->value) > 0);
     }
 
     /**
@@ -415,7 +415,7 @@ class Inp implements InpInterface
      */
     public function lowerAtoZ(): bool
     {
-        return (preg_match("/^[a-z]+$/", $this->value) !== false);
+        return ((int)preg_match("/^[a-z]+$/", $this->value) > 0);
     }
 
     /**
@@ -424,7 +424,7 @@ class Inp implements InpInterface
      */
     public function upperAtoZ(): bool
     {
-        return (preg_match("/^[A-Z]+$/", $this->value) !== false);
+        return ((int)preg_match("/^[A-Z]+$/", $this->value) > 0);
     }
 
 
@@ -434,7 +434,7 @@ class Inp implements InpInterface
      */
     public function hex(): bool
     {
-        return (preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) !== false);
+        return ((int)preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) > 0);
     }
 
     /**
