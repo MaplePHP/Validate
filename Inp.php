@@ -43,15 +43,17 @@ class Inp implements InpInterface
 
     /**
      * Start instance
-     * @param  string $value the input value
+     * @param  mixed $value the input value
      * @return self
      */
-    public function __construct(string $value)
+    public function __construct(mixed $value)
     {
         $this->value = $value;
-        $this->length = $this->getLength($value);
         $this->dateTime = new DateTime("now");
-        $this->getStr = new Str($this->value);
+        if(is_string($value) || is_numeric($value)) {
+            $this->length = $this->getLength($value);
+        }
+        $this->getStr = new Str((string)$this->value);
     }
 
     /**
@@ -59,7 +61,7 @@ class Inp implements InpInterface
      * @param  string $value the input value
      * @return self
      */
-    public static function value(string $value): self
+    public static function value(mixed $value): self
     {
         return new self($value);
     }
