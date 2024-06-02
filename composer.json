@@ -1,7 +1,7 @@
 {
     "name": "maplephp/validate",
     "type": "library",
-    "version": "1.0.4",
+    "version": "v1.0.4",
     "description": "User-friendly input validation library.",
     "keywords": ["validation", "input", "data", "validate request"],
     "homepage": "https://wazabii.se",
