@@ -52,8 +52,8 @@ class Inp implements InpInterface
         $this->dateTime = new DateTime("now");
         if(is_string($value) || is_numeric($value)) {
             $this->length = $this->getLength($value);
+            $this->getStr = new Str($this->value);
         }
-        $this->getStr = new Str((string)$this->value);
     }
 
     /**
