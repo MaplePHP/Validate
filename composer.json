@@ -1,6 +1,7 @@
 {
     "name": "maplephp/validate",
     "type": "library",
+    "version": "1.0.3",
     "description": "User-friendly input validation library.",
     "keywords": ["validation", "input", "data", "validate request"],
     "homepage": "https://wazabii.se",
@@ -20,17 +21,8 @@
         "maplephp/dto": "^1.0"
     },
     "require-dev": {
-        "maplephp/unitary": "^1.0"
+        "maplephp/unitary": "^1.0.0"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../unitary",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "autoload": {
         "psr-4": {
             "MaplePHP\\Validate\\": ""
