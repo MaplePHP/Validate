@@ -19,6 +19,12 @@
         "php": ">=8.0",
         "maplephp/dto": "^1.0"
     },
+	"require-dev": {
+		"maplephp/unitary": "^1.0"
+	},
+    "replace": {
+        "maplephp/validate": "self.version"
+    },
     "autoload": {
         "psr-4": {
             "MaplePHP\\Validate\\": ""
