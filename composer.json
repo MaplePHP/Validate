@@ -22,6 +22,15 @@
     "require-dev": {
         "maplephp/unitary": "^1.0"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../unitary",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "autoload": {
         "psr-4": {
             "MaplePHP\\Validate\\": ""
