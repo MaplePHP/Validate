@@ -14,21 +14,27 @@ $unit = new Unit();
 // Add a title to your tests (not required)
 $unit->addTitle("Testing MaplePHP validation library!");
 
-$unit->add("Checking data type", function($inst) {
+$unit->add("Validating values", function($inst) {
 
-    $inst->add("Lorem ipsum dolor", [
-        "string" => [],
-        "length" => [1,200]
+    $inst->add("TestValue", [
+        "isString" => []
+    ], "Is not a string");
 
-    ])->add(1221, [
-        "int" => []
+    $inst->add("600", [
+        "isInt" => []
+    ], "Is not int");
 
-    ])->add("Lorem", [
-        "string" => [],
-        "length" => function($valid) {
-            return $valid->length(1, 50);
-        }
-    ], "The length is not correct!");
+    $inst->add("600.33", [
+        "isFloat" => []
+    ], "Is not float");
+
+    $inst->add(true, [
+        "isBool" => []
+    ], "Is not bool");
+
+    $inst->add("yes", [
+        "isBoolVal" => []
+    ], "Is not bool");
 
 });
 
