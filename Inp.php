@@ -9,10 +9,9 @@
 
 namespace MaplePHP\Validate;
 
+use Exception;
 use MaplePHP\Validate\Interfaces\InpInterface;
-use MaplePHP\Validate\Luhn;
 use MaplePHP\DTO\Format\Str;
-use InvalidArgumentException;
 use DateTime;
 
 class Inp implements InpInterface
@@ -34,17 +33,16 @@ class Inp implements InpInterface
         'ne'
     ];
 
-    private $value;
-    private $length;
-    private $dateTime;
-    private $luhn;
-    private $getStr;
+    private mixed $value;
+    private int $length = 0;
+    private DateTime $dateTime;
+    private ?Luhn $luhn = null;
+    private ?Str $getStr = null;
 
 
     /**
      * Start instance
      * @param  mixed $value the input value
-     * @return self
      */
     public function __construct(mixed $value)
     {
@@ -122,7 +120,7 @@ class Inp implements InpInterface
      * Validate Swedish personal numbers
      * @return bool
      */
-    public function personnummer(): bool
+    public function personalNumber(): bool
     {
         return $this->socialNumber();
     }
@@ -137,10 +135,10 @@ class Inp implements InpInterface
     }
 
     /**
-     * Validate creditcardnumbers (THIS needs to be tested)
+     * Validate credit card numbers (THIS needs to be tested)
      * @return bool
      */
-    public function creditcard(): bool
+    public function creditCard(): bool
     {
         return $this->luhn()->creditcard();
     }
@@ -156,7 +154,7 @@ class Inp implements InpInterface
 
     /**
      * Validate email
-     * Loosely check if is email. By loosley I mean it will not check if valid DNS. You can check this
+     * Loosely check if is email. By loosely I mean it will not check if valid DNS. You can check this
      * manually with the method @dns but in most cases this will not be necessary.
      * @return bool
      */
@@ -167,18 +165,18 @@ class Inp implements InpInterface
 
     /**
      * Find in string
-     * @param  string   $match keyword to match agains
-     * @param  int|null $pos   match start positon if you want
+     * @param  string   $match keyword to match against
+     * @param  int|null $pos   match start position if you want
      * @return bool
      */
     public function findInString(string $match, ?int $pos = null): bool
     {
-        return ((is_null($pos) && strpos($this->value, $match) !== false) ||
-                (!is_null($pos) && strpos($this->value, $match) === $pos));
+        return ((is_null($pos) && str_contains($this->value, $match)) ||
+                (strpos($this->value, $match) === $pos));
     }
 
     /**
-     * Check if is phone
+     * Check if is a phone number
      * @return bool
      */
     public function phone(): bool
@@ -197,9 +195,120 @@ class Inp implements InpInterface
      */
     public function zip(int $arg1, int $arg2 = null): bool
     {
-        $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""], $this->value);
+        $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""]);
         $this->length = $this->getLength($this->value);
         return ($this->int() && $this->length($arg1, $arg2));
+    }
+
+    /**
+     * Is value float
+     * Will validate whether a string is a valid float (User input is always a string)
+     * @return bool
+     */
+    public function isFloat(): bool
+    {
+        return (filter_var($this->value, FILTER_VALIDATE_FLOAT) !== false);
+    }
+
+    // Deprecated
+    public function float(): bool
+    {
+        return $this->isFloat();
+    }
+
+    /**
+     * Is value int
+     * Will validate whether a string is a valid integer (User input is always a string)
+     * @return bool
+     */
+    public function isInt(): bool
+    {
+        return (filter_var($this->value, FILTER_VALIDATE_INT) !== false);
+    }
+
+    // Deprecated
+    public function int(): bool
+    {
+        return $this->isInt();
+    }
+
+    /**
+     * Is value string
+     * @return bool
+     */
+    public function isString(): bool
+    {
+        return is_string($this->value);
+    }
+
+    // Deprecated
+    public function string(): bool
+    {
+        return $this->isString();
+    }
+
+    /**
+     * Is value array
+     * @return bool
+     */
+    public function isArray(): bool
+    {
+        return is_array($this->value);
+    }
+
+    // Deprecated
+    public function array(): bool
+    {
+        return $this->isArray();
+    }
+
+    /**
+     * Is value object
+     * @return bool
+     */
+    public function isObject(): bool
+    {
+        return is_object($this->value);
+    }
+
+    // Deprecated
+    public function object(): bool
+    {
+        return $this->isObject();
+    }
+
+    /**
+     * Is value bool
+     * @return bool
+     */
+    public function isBool(): bool
+    {
+        return (is_bool($this->value));
+    }
+
+    // Deprecated
+    public function bool(): bool
+    {
+        return $this->isBool();
+    }
+
+    /**
+     * Check if the value itself can be Interpreted as a bool value
+     * E.g. If value === ([on, off], [yes, no], [1, 0] or [true, false])
+     * @return bool
+     */
+    public function isBoolVal(): bool
+    {
+        $val = strtolower(trim((string)$this->value));
+        $true = ($val === "on" || $val === "yes" || $val === "1" || $val === "true");
+        $false = ($val === "off" || $val === "no" || $val === "0" || $val === "false");
+        return ($true || $false);
+    }
+
+    // Deprecated
+    public function boolVal(): bool
+    {
+        return $this->isBoolVal();
     }
 
     /**
@@ -241,6 +350,7 @@ class Inp implements InpInterface
 
     /**
      * Value is minimum float|int value
+     * @param float $int
      * @return bool
      */
     public function min(float $int): bool
@@ -250,6 +360,7 @@ class Inp implements InpInterface
 
     /**
      * Value is minimum float|int value (Same as "@min()" but can be used to add another error message)
+     * @param float $int
      * @return bool
      */
     public function minAlt(float $int): bool
@@ -259,29 +370,12 @@ class Inp implements InpInterface
 
     /**
      * Value is maximum float|int value
+     * @param float $int
      * @return bool
      */
     public function max(float $int): bool
     {
         return ((float)$this->value <= $int);
-    }
-
-    /**
-     * Is value float
-     * @return bool
-     */
-    public function float(): bool
-    {
-        return (filter_var($this->value, FILTER_VALIDATE_FLOAT) !== false);
-    }
-
-    /**
-     * Is value int
-     * @return bool
-     */
-    public function int(): bool
-    {
-        return (filter_var($this->value, FILTER_VALIDATE_INT) !== false);
     }
 
     /**
@@ -313,6 +407,7 @@ class Inp implements InpInterface
 
     /**
      * IF value equals to param
+     * @param $str
      * @return bool
      */
     public function equal($str): bool
@@ -322,6 +417,7 @@ class Inp implements InpInterface
 
     /**
      * IF value equals to param
+     * @param $str
      * @return bool
      */
     public function notEqual($str): bool
@@ -330,10 +426,11 @@ class Inp implements InpInterface
     }
 
     /**
-     * Chech is a valid version number
+     * Check is a valid version number
+     * @param bool $strict
      * @return bool
      */
-    public function validVersion($strict = false): bool
+    public function validVersion(bool $strict = false): bool
     {
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
         return ($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
@@ -341,8 +438,8 @@ class Inp implements InpInterface
 
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
-     * @param  string $withVersion
-     * @param  '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne' $operator
+     * @param string $withVersion
+     * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
      * @return bool
      */
     public function versionCompare(string $withVersion, string $operator = ">="): bool
@@ -354,22 +451,13 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value string
-     * @return bool
-     */
-    public function string(): bool
-    {
-        return (is_string($this->value));
-    }
-
-    /**
-     * Lossy password - Will return false if a character inputed is not allowed
+     * Lossy password - Will return false if a character inputted is not allowed
      * [a-zA-Z\d$@$!%*?&] - Matches "any" letter (uppercase or lowercase), digit, or special character
      * from the allowed set of special characters
-     * @param  integer $length Minimum length
+     * @param integer $length Minimum length
      * @return bool
      */
-    public function lossyPassword($length = 1): bool
+    public function lossyPassword(int $length = 1): bool
     {
         return ((int)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) > 0);
     }
@@ -382,11 +470,11 @@ class Inp implements InpInterface
      * (?=.*[$@$!%*?&]) - at least one special character from the set: $, @, #, !, %, *, ?, &
      * [A-Za-z\d$@$!%*?&]{1,} - matches 1 or more characters consisting of letters, digits,
      * and the allowed special characters
-     * I do tho recomend that you validate the length with @length(8, 60) method!
-     * @param  integer $length Minimum length
+     * I do tho recommend that you validate the length with @length(8, 60) method!
+     * @param integer $length Minimum length
      * @return bool
      */
-    public function strictPassword($length = 1): bool
+    public function strictPassword(int $length = 1): bool
     {
         $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/';
         return ((int)preg_match($pattern, $this->value) > 0);
@@ -394,6 +482,7 @@ class Inp implements InpInterface
 
     /**
      * Is value is string and character between a-z or A-Z
+     * @param $matchStr
      * @return bool
      */
     public function pregMatch($matchStr): bool
@@ -429,7 +518,6 @@ class Inp implements InpInterface
         return ((int)preg_match("/^[A-Z]+$/", $this->value) > 0);
     }
 
-
     /**
      * Is Hex color code string
      * @return bool
@@ -440,48 +528,11 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value array
-     * @return bool
-     */
-    public function isArray(): bool
-    {
-        return (is_array($this->value));
-    }
-
-    /**
-     * Is value object
-     * @return bool
-     */
-    public function isObject(): bool
-    {
-        return (is_object($this->value));
-    }
-
-    /**
-     * Is value bool
-     * @return bool
-     */
-    public function bool(): bool
-    {
-        return (is_bool($this->value));
-    }
-
-    /**
-     * If value === ([on, off], [yes, no], [1, 0] or [true, false])
-     * @return bool
-     */
-    public function boolVal(): bool
-    {
-        $val = strtolower(trim((string)$this->value));
-        return ($val === "on" || $val === "yes" || $val === "1" || $val === "true");
-    }
-
-    /**
      * Check if is a date
-     * @param  string $format validate after this date format (default Y-m-d)
+     * @param string $format validate after this date format (default Y-m-d)
      * @return DateTime|false
      */
-    public function date($format = "Y-m-d"): DateTime|false
+    public function date(string $format = "Y-m-d"): DateTime|false
     {
         return DateTime::createFromFormat($format, $this->value);
     }
@@ -489,30 +540,30 @@ class Inp implements InpInterface
 
     /**
      * Check if is a date and time
-     * @param  string  $format  validate after this date format (default Y-m-d H:i)
+     * @param string $format  validate after this date format (default Y-m-d H:i)
      * @return DateTime|false
      */
-    public function dateTime($format = "Y-m-d H:i"): DateTime|false
+    public function dateTime(string $format = "Y-m-d H:i"): DateTime|false
     {
         return $this->date($format);
     }
 
     /**
      * Check if is a date and time
-     * @param  string  $format  validate after this date format (default Y-m-d H:i)
+     * @param string $format  validate after this date format (default Y-m-d H:i)
      * @return DateTime|false
      */
-    public function time($format = "H:i"): DateTime|false
+    public function time(string $format = "H:i"): DateTime|false
     {
         return $this->date($format);
     }
 
     /**
      * Check if is a date and a "valid range"
-     * @param  string $format validate after this date format (default Y-m-d H:i)
-     * @return array|false E.g array(T1, T2); T1 = start and T2 = end
+     * @param string $format validate after this date format (default Y-m-d H:i)
+     * @return array|false E.g. array(T1, T2); T1 = start and T2 = end
      */
-    public function dateRange($format = "Y-m-d H:i"): array|false
+    public function dateRange(string $format = "Y-m-d H:i"): array|false
     {
         $exp = explode(" - ", $this->value);
         if (count($exp) === 2) {
@@ -527,14 +578,15 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check "minimum" age (value format should be validate date "Y-m-d")
-     * @param  int    $arg1 18 == user should be atleast 18 years old
+     * Check "minimum" age (value format should be validated date "Y-m-d")
+     * @param int $arg1 18 == user should be at least 18 years old
      * @return bool
+     * @throws Exception
      */
     public function age(int $arg1): bool
     {
         $now = $this->dateTime->format("Y");
-        $dateTime = new \DateTime($this->value);
+        $dateTime = new DateTime($this->value);
         $birth = $dateTime->format("Y");
         $age = (int)($now - $birth);
         return ($age >= $arg1);
@@ -563,54 +615,58 @@ class Inp implements InpInterface
     /**
      * Check if "Host|domain" has an valid DNS (will check A, AAAA and MX)
      * @psalm-suppress UndefinedConstant
+     * @noinspection PhpComposerExtensionStubsInspection
      * @return bool
      */
     public function dns(): bool
     {
-        $host = $this->value;
-        $Aresult = true;
-        if (!defined('INTL_IDNA_VARIANT_2003')) {
-            define('INTL_IDNA_VARIANT_2003', 0);
+        $AResult = true;
+        $host = $this->getHost($this->value);
+        $MXResult = checkdnsrr($host); // Argument 2 is MX by default
+        if (!$MXResult) {
+            $AResult = checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA');
         }
-        $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
-        $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
-        $MXresult = checkdnsrr($host, 'MX');
-        if (!$MXresult) {
-            $Aresult = checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA');
-        }
-        return ($MXresult || $Aresult);
+        return ($MXResult || $AResult);
     }
 
     /**
      * Match DNS record by search for TYPE and matching VALUE
      * @param  int $type   (DNS_A, DNS_CNAME, DNS_HINFO, DNS_CAA, DNS_MX, DNS_NS, DNS_PTR, DNS_SOA,
      * DNS_TXT, DNS_AAAA, DNS_SRV, DNS_NAPTR, DNS_A6, DNS_ALL or DNS_ANY)
+     * @noinspection PhpComposerExtensionStubsInspection
      * @return array|false
      */
     public function matchDNS(int $type): array|false
     {
-        $host = $this->value;
-        if (!defined('INTL_IDNA_VARIANT_2003')) {
-            define('INTL_IDNA_VARIANT_2003', 0);
-        }
-        $variant = INTL_IDNA_VARIANT_2003;
-        if (defined('INTL_IDNA_VARIANT_UTS46')) {
-            $variant = INTL_IDNA_VARIANT_UTS46;
-        }
-        $host = rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
-        $Aresult = dns_get_record($host, $type);
-        if (is_array($Aresult) && count($Aresult) > 0) {
-            return $Aresult;
+        $host = $this->getHost($this->value);
+        $result = dns_get_record($host, $type);
+        if (is_array($result) && count($result) > 0) {
+            return $result;
         }
         return false;
     }
 
     /**
-     * Validate multiple. Will return true if "one" matches
-     * @param  array $arr [description]
-     * @return mixed
+     * Get hosts (used for DNS checks)
+     * @noinspection PhpComposerExtensionStubsInspection
+     * @param string $host
+     * @return string
      */
-    public function oneOf(array $arr)
+    private function getHost(string $host): string
+    {
+        if (!defined('INTL_IDNA_VARIANT_2003')) {
+            define('INTL_IDNA_VARIANT_2003', 0);
+        }
+        $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
+        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
+    }
+
+    /**
+     * Validate multiple. Will return true if "one" matches
+     * @param  array $arr
+     * @return bool
+     */
+    public function oneOf(array $arr): bool
     {
         $valid = false;
         foreach ($arr as $val) {
@@ -629,10 +685,10 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "all" matches
-     * @param  array $arr [description]
-     * @return mixed
+     * @param  array $arr
+     * @return bool
      */
-    public function allOf(array $arr)
+    public function allOf(array $arr): bool
     {
         $valid = true;
         foreach ($arr as $val) {
@@ -649,7 +705,7 @@ class Inp implements InpInterface
         return $valid;
     }
 
-    public function continue(array $arr1, array $arr2)
+    public function continue(array $arr1, array $arr2): bool
     {
         if ($this->allOf($arr1)) {
             if (!$this->required()) {
@@ -660,18 +716,4 @@ class Inp implements InpInterface
         return false;
     }
 
-    // For your information: ÅÄÖ will not be in predicted range.
-    private function rangeBetween($start, $end)
-    {
-        $result = array();
-        list(, $_start, $_end) = unpack("N*", mb_convert_encoding($start . $end, "UTF-32BE", "UTF-8"));
-        $offset = $_start < $_end ? 1 : -1;
-        $current = $_start;
-        while ($current != $_end) {
-            $result[] = mb_convert_encoding(pack("N*", $current), "UTF-8", "UTF-32BE");
-            $current += $offset;
-        }
-        $result[] = $end;
-        return $result;
-    }
 }
