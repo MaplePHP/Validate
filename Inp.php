@@ -412,7 +412,7 @@ class Inp implements InpInterface
      */
     public function equal($str): bool
     {
-        return ((string)$this->value === (string)$str);
+        return ($this->value === $str);
     }
 
     /**
@@ -422,18 +422,19 @@ class Inp implements InpInterface
      */
     public function notEqual($str): bool
     {
-        return ((string)$this->value !== (string)$str);
+        return ($this->value !== $str);
     }
 
     /**
      * Check is a valid version number
-     * @param bool $strict
+     * @param bool $strict (validate as a semantic Versioning, e.g. 1.0.0)
      * @return bool
      */
     public function validVersion(bool $strict = false): bool
     {
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
-        return ($strictMatch && version_compare((string)$this->value, '0.0.1', '>=') >= 0);
+        $compare = version_compare((string)$this->value, '0.0.1', '>=');
+        return ($strictMatch && $compare !== false && $compare >= 0);
     }
 
     /**
@@ -442,10 +443,10 @@ class Inp implements InpInterface
      * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
      * @return bool
      */
-    public function versionCompare(string $withVersion, string $operator = ">="): bool
+    public function versionCompare(string $withVersion, string $operator = "=="): bool
     {
         if (in_array($operator, self::WHITELIST_OPERATORS)) {
-            return (version_compare((string)$this->value, $withVersion, $operator) >= 0);
+            return version_compare((string)$this->value, $withVersion, $operator);
         }
         return false;
     }
@@ -530,20 +531,20 @@ class Inp implements InpInterface
     /**
      * Check if is a date
      * @param string $format validate after this date format (default Y-m-d)
-     * @return DateTime|false
+     * @return bool
      */
-    public function date(string $format = "Y-m-d"): DateTime|false
+    public function date(string $format = "Y-m-d"): bool
     {
-        return DateTime::createFromFormat($format, $this->value);
+        return (DateTime::createFromFormat($format, $this->value) !== false);
     }
 
 
     /**
      * Check if is a date and time
      * @param string $format  validate after this date format (default Y-m-d H:i)
-     * @return DateTime|false
+     * @return bool
      */
-    public function dateTime(string $format = "Y-m-d H:i"): DateTime|false
+    public function dateTime(string $format = "Y-m-d H:i"): bool
     {
         return $this->date($format);
     }
@@ -551,9 +552,9 @@ class Inp implements InpInterface
     /**
      * Check if is a date and time
      * @param string $format  validate after this date format (default Y-m-d H:i)
-     * @return DateTime|false
+     * @return bool
      */
-    public function time(string $format = "H:i"): DateTime|false
+    public function time(string $format = "H:i"): bool
     {
         return $this->date($format);
     }
@@ -579,7 +580,7 @@ class Inp implements InpInterface
 
     /**
      * Check "minimum" age (value format should be validated date "Y-m-d")
-     * @param int $arg1 18 == user should be at least 18 years old
+     * @param int $arg1  18: user should be 18 or older
      * @return bool
      * @throws Exception
      */
@@ -589,7 +590,7 @@ class Inp implements InpInterface
         $dateTime = new DateTime($this->value);
         $birth = $dateTime->format("Y");
         $age = (int)($now - $birth);
-        return ($age >= $arg1);
+        return ($age <= $arg1);
     }
 
     /**
@@ -669,15 +670,10 @@ class Inp implements InpInterface
     public function oneOf(array $arr): bool
     {
         $valid = false;
-        foreach ($arr as $val) {
-            if (is_array($val)) {
-                if (call_user_func_array(['self', 'length'], $val)) {
-                    $valid = true;
-                }
-            } else {
-                if ($this->{$val}()) {
-                    $valid = true;
-                }
+        foreach ($arr as $method => $args) {
+            $inst = new self($this->value);
+            if(call_user_func_array([$inst, $method], $args)) {
+                $valid = true;
             }
         }
         return $valid;
@@ -690,30 +686,12 @@ class Inp implements InpInterface
      */
     public function allOf(array $arr): bool
     {
-        $valid = true;
-        foreach ($arr as $val) {
-            if (is_array($val)) {
-                if (!call_user_func_array(['self', 'length'], $val)) {
-                    $valid = false;
-                }
-            } else {
-                if (!$this->{$val}()) {
-                    $valid = false;
-                }
+        foreach ($arr as $method => $args) {
+            $inst = new self($this->value);
+            if(!call_user_func_array([$inst, $method], $args)) {
+                return false;
             }
         }
-        return $valid;
+        return true;
     }
-
-    public function continue(array $arr1, array $arr2): bool
-    {
-        if ($this->allOf($arr1)) {
-            if (!$this->required()) {
-                return true;
-            }
-            return $this->allOf($arr2);
-        }
-        return false;
-    }
-
 }
