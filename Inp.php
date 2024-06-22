@@ -9,7 +9,9 @@
 
 namespace MaplePHP\Validate;
 
+use ErrorException;
 use Exception;
+use MaplePHP\DTO\MB;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\DTO\Format\Str;
 use DateTime;
@@ -66,12 +68,14 @@ class Inp implements InpInterface
 
     /**
      * Get value string length
-     * @param  string $value
+     * @param string $value
      * @return int
+     * @throws ErrorException
      */
     public function getLength(string $value): int
     {
-        return strlen($value);
+        $mb = new MB($value);
+        return $mb->strlen();
     }
 
     /**
