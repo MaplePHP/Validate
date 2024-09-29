@@ -11,7 +11,6 @@ namespace MaplePHP\Validate;
 
 use ErrorException;
 use Exception;
-use http\Exception\InvalidArgumentException;
 use MaplePHP\DTO\MB;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\DTO\Format\Str;
