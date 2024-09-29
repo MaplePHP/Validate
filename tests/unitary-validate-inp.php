@@ -4,20 +4,12 @@
  * This is how a template test file should look like but
  * when used in MaplePHP framework you can skip the "bash code" at top and the "autoload file"!
  */
+
 use MaplePHP\Unitary\Unit;
 use MaplePHP\Validate\Inp;
 
-
-
-
-// If you add true to Unit it will run in quite mode
-// and only report if it finds any errors!
 $unit = new Unit();
-
-// Add a title to your tests (not required)
-$unit->addTitle("Testing MaplePHP validation library!");
-
-$unit->add("Validating values", callback: function($inst) {
+$unit->case("MaplePHP input validate test", function($inst) {
 
     $strVal = Inp::value("TestStringValue");
     $testStrValidates = ["isString", "required", "hasValue"];
@@ -27,11 +19,10 @@ $unit->add("Validating values", callback: function($inst) {
             "equal" => [true],
         ], "Expect {$validate} to be true");
     }
-    
+
     $inst->add(Inp::value("8808218329")->socialNumber(), [
         "equal" => [false],
     ], "Expect socialNumber to be false");
-
 
     $inst->add(Inp::value("4030000010001234")->creditCard(), [
         "equal" => [true],
@@ -58,7 +49,7 @@ $unit->add("Validating values", callback: function($inst) {
         "equal" => [true],
     ], "Expect isString to be true");
 
-    $inst->add(Inp::value(122)->isInt(), [
+    $inst->add(Inp::value(true)->isInt(), [
         "equal" => [true],
     ], "Expect isInt to be true");
 

@@ -9,14 +9,17 @@
 
 namespace MaplePHP\Validate;
 
+use ErrorException;
 use Exception;
+use http\Exception\InvalidArgumentException;
+use MaplePHP\DTO\MB;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\DTO\Format\Str;
 use DateTime;
 
 class Inp implements InpInterface
 {
-    const WHITELIST_OPERATORS = [
+    public const WHITELIST_OPERATORS = [
         '!=',
         '<',
         '<=',
@@ -42,22 +45,36 @@ class Inp implements InpInterface
 
     /**
      * Start instance
-     * @param  mixed $value the input value
+     * @param mixed $value the input value
+     * @throws ErrorException
      */
     public function __construct(mixed $value)
     {
         $this->value = $value;
         $this->dateTime = new DateTime("now");
         if(is_string($value) || is_numeric($value)) {
-            $this->length = $this->getLength($value);
+            $this->length = $this->getLength((string)$value);
             $this->getStr = new Str($this->value);
         }
     }
 
     /**
+     * Immutable: Validate against new value
+     * @param mixed $value
+     * @return InpInterface
+     */
+    public function withValue(mixed $value): InpInterface
+    {
+        $inst = clone $this;
+        $inst->value = $value;
+        return $inst;
+    }
+
+    /**
      * Start instance
-     * @param  string $value the input value
+     * @param string $value the input value
      * @return self
+     * @throws ErrorException
      */
     public static function value(mixed $value): self
     {
@@ -66,12 +83,14 @@ class Inp implements InpInterface
 
     /**
      * Get value string length
-     * @param  string $value
+     * @param string $value
      * @return int
+     * @throws ErrorException
      */
     public function getLength(string $value): int
     {
-        return strlen($value);
+        $mb = new MB($value);
+        return (int)$mb->strlen();
     }
 
     /**
@@ -181,6 +200,9 @@ class Inp implements InpInterface
      */
     public function phone(): bool
     {
+        if (is_null($this->getStr)) {
+            return false;
+        }
         $val = (string)$this->getStr->replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""]);
         $match = preg_match('/^[0-9]{7,14}+$/', $val);
         $strict = preg_match('/^\+[0-9]{1,2}[0-9]{6,13}$/', $val);
@@ -189,15 +211,19 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid ZIP
-     * @param  int      $arg1 start length
-     * @param  int|null $arg2 end length
+     * @param int $arg1 start length
+     * @param int|null $arg2 end length
      * @return bool
+     * @throws ErrorException
      */
     public function zip(int $arg1, int $arg2 = null): bool
     {
+        if (is_null($this->getStr)) {
+            return false;
+        }
         $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""]);
         $this->length = $this->getLength($this->value);
-        return ($this->int() && $this->length($arg1, $arg2));
+        return ($this->isInt() && $this->length($arg1, $arg2));
     }
 
     /**
@@ -210,12 +236,6 @@ class Inp implements InpInterface
         return (filter_var($this->value, FILTER_VALIDATE_FLOAT) !== false);
     }
 
-    // Deprecated
-    public function float(): bool
-    {
-        return $this->isFloat();
-    }
-
     /**
      * Is value int
      * Will validate whether a string is a valid integer (User input is always a string)
@@ -224,12 +244,6 @@ class Inp implements InpInterface
     public function isInt(): bool
     {
         return (filter_var($this->value, FILTER_VALIDATE_INT) !== false);
-    }
-
-    // Deprecated
-    public function int(): bool
-    {
-        return $this->isInt();
     }
 
     /**
@@ -241,8 +255,11 @@ class Inp implements InpInterface
         return is_string($this->value);
     }
 
-    // Deprecated
-    public function string(): bool
+    /**
+     * Is value string
+     * @return bool
+     */
+    public function isStr(): bool
     {
         return $this->isString();
     }
@@ -256,12 +273,6 @@ class Inp implements InpInterface
         return is_array($this->value);
     }
 
-    // Deprecated
-    public function array(): bool
-    {
-        return $this->isArray();
-    }
-
     /**
      * Is value object
      * @return bool
@@ -271,12 +282,6 @@ class Inp implements InpInterface
         return is_object($this->value);
     }
 
-    // Deprecated
-    public function object(): bool
-    {
-        return $this->isObject();
-    }
-
     /**
      * Is value bool
      * @return bool
@@ -284,12 +289,6 @@ class Inp implements InpInterface
     public function isBool(): bool
     {
         return (is_bool($this->value));
-    }
-
-    // Deprecated
-    public function bool(): bool
-    {
-        return $this->isBool();
     }
 
     /**
@@ -305,10 +304,58 @@ class Inp implements InpInterface
         return ($true || $false);
     }
 
-    // Deprecated
-    public function boolVal(): bool
+    /**
+     * Is null
+     * @return bool
+     */
+    public function isNull(): bool
     {
-        return $this->isBoolVal();
+        return is_null($this->value);
+    }
+
+    /**
+     * Is file
+     * @return bool
+     */
+    public function isFile(): bool
+    {
+        return is_file($this->value);
+    }
+
+    /**
+     * Is directory
+     * @return bool
+     */
+    public function isDir(): bool
+    {
+        return is_dir($this->value);
+    }
+
+    /**
+     * Is resource
+     * @return bool
+     */
+    public function isResource(): bool
+    {
+        return is_resource($this->value);
+    }
+
+    /**
+     * Is writable
+     * @return bool
+     */
+    public function isWritable(): bool
+    {
+        return is_writable($this->value);
+    }
+
+    /**
+     * Is readable
+     * @return bool
+     */
+    public function isReadable(): bool
+    {
+        return is_readable($this->value);
     }
 
     /**
@@ -440,7 +487,7 @@ class Inp implements InpInterface
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
      * @param string $withVersion
-     * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
+     * @param '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne' $operator
      * @return bool
      */
     public function versionCompare(string $withVersion, string $operator = "=="): bool
@@ -586,10 +633,10 @@ class Inp implements InpInterface
      */
     public function age(int $arg1): bool
     {
-        $now = $this->dateTime->format("Y");
+        $now = (int)$this->dateTime->format("Y");
         $dateTime = new DateTime($this->value);
-        $birth = $dateTime->format("Y");
-        $age = (int)($now - $birth);
+        $birth = (int)$dateTime->format("Y");
+        $age = ($now - $birth);
         return ($age <= $arg1);
     }
 
@@ -664,8 +711,9 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "one" matches
-     * @param  array $arr
+     * @param array $arr
      * @return bool
+     * @throws ErrorException
      */
     public function oneOf(array $arr): bool
     {
@@ -681,8 +729,9 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "all" matches
-     * @param  array $arr
+     * @param array $arr
      * @return bool
+     * @throws ErrorException
      */
     public function allOf(array $arr): bool
     {
