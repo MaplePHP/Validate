@@ -14,9 +14,9 @@ use MaplePHP\Validate\ValidVatFormat;
 class Luhn
 {
     private $number;
-    private $length;
     private $string;
     private $part;
+    //private $length;
 
     /**
      * Start intsance and input Value
@@ -27,7 +27,7 @@ class Luhn
 
         $this->string = preg_replace('/[^A-Z\d]/', '', strtoupper($number));
         $this->number = preg_replace('/\D/', '', $number);
-        $this->length = (is_string($this->number)) ? strlen($this->number) : 0;
+        //$this->length = (is_string($this->number)) ? strlen($this->number) : 0;
     }
 
     /**
@@ -215,11 +215,11 @@ class Luhn
      */
     final protected function part()
     {
-        $match = array();
+        $match = [];
         $reg = '/^(\d{2}){0,1}(\d{2})(\d{2})(\d{2})([\+\-\s]?)(\d{3})(\d)$/';
         preg_match($reg, $this->number, $match);
         if (count($match) !== 8) {
-            return array();
+            return [];
         }
 
         $century = $match[1];
@@ -230,7 +230,7 @@ class Luhn
         $num     = $match[6];
         $check   = $match[7];
 
-        if (!in_array($sep, array('-', '+'))) {
+        if (!in_array($sep, ['-', '+'])) {
             if (empty($century) || date('Y') - intval(strval($century) . strval($year)) < 100) {
                 $sep = '-';
             } else {
@@ -246,7 +246,7 @@ class Luhn
             $century = substr((string)($baseYear - (($baseYear - $year) % 100)), 0, 2);
         }
 
-        return array(
+        return [
             'century' => $century,
             'year' => $year,
             'month' => $month,
@@ -254,7 +254,7 @@ class Luhn
             'sep' => $sep,
             'num' => $num,
             'check' => $check
-        );
+        ];
     }
 
     /**

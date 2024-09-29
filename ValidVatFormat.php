@@ -13,6 +13,7 @@ class ValidVatFormat
 {
     /**
      * Regular expression per country code
+     * @var array<string, string>
      * @link http://ec.europa.eu/taxation_customs/vies/faq.html?locale=lt#item_11
      */
     public const PATTERNS = [
@@ -46,10 +47,10 @@ class ValidVatFormat
         'SK' => '\d{10}'
     ];
 
-    private $country;
-    private $number;
+    private string $country;
+    private string $number;
 
-    public function __construct($vatNumber)
+    public function __construct(string $vatNumber)
     {
         $this->country = substr($vatNumber, 0, 2);
         $this->number = substr($vatNumber, 2);
@@ -79,8 +80,10 @@ class ValidVatFormat
      */
     public function validate(): bool
     {
-        if (is_string($this->number) && $this->validateCountry()) {
-            return (preg_match('/^' . $this::PATTERNS[$this->country] . '$/', $this->number) > 0);
+        if ($this->validateCountry()) {
+            /** @var array<string, string> $pattern */
+            $pattern = $this::PATTERNS;
+            return (preg_match('/^' . $pattern[$this->country] . '$/', $this->number) > 0);
         }
         return false;
     }
