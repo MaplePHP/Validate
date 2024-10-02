@@ -1,7 +1,7 @@
 {
   "name": "maplephp/validate",
   "type": "library",
-  "version": "v1.0.7",
+  "version": "v1.0.8",
   "description": "User-friendly input validation library.",
   "keywords": [
     "validation",
