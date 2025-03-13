@@ -215,7 +215,7 @@ class Inp implements InpInterface
      * @return bool
      * @throws ErrorException
      */
-    public function zip(int $arg1, int $arg2 = null): bool
+    public function zip(int $arg1, ?int $arg2 = null): bool
     {
         if (is_null($this->getStr)) {
             return false;
@@ -289,6 +289,37 @@ class Inp implements InpInterface
     {
         return (is_bool($this->value));
     }
+
+    /**
+     * Is a valid json string
+     * @return bool
+     */
+    public function isJson(): bool
+    {
+        json_decode($this->value);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /**
+     * Validate a string as html, check that it contains doctype, html, head and body
+     * @return bool
+     */
+    public function isFullHtml(): bool
+    {
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        if (!is_string($this->value) || !$dom->loadHTML($this->value, LIBXML_NOERROR | LIBXML_NOWARNING)) {
+            return false; // Invalid HTML syntax
+        }
+        if (!$dom->doctype || strtolower($dom->doctype->name) !== "html") {
+            return false;
+        }
+        $htmlTag = $dom->getElementsByTagName("html")->length > 0;
+        $headTag = $dom->getElementsByTagName("head")->length > 0;
+        $bodyTag = $dom->getElementsByTagName("body")->length > 0;
+        return $htmlTag && $headTag && $bodyTag;
+    }
+
 
     /**
      * Check if the value itself can be Interpreted as a bool value
@@ -430,7 +461,7 @@ class Inp implements InpInterface
      * @param  int|null $arg2 end length
      * @return bool
      */
-    public function length(int $arg1, int $arg2 = null): bool
+    public function length(int $arg1, ?int $arg2 = null): bool
     {
         if ($this->length >= $arg1 && (($arg2 === null) || $this->length <= $arg2)) {
             return true;
@@ -636,7 +667,7 @@ class Inp implements InpInterface
         $dateTime = new DateTime($this->value);
         $birth = (int)$dateTime->format("Y");
         $age = ($now - $birth);
-        return ($age <= $arg1);
+        return ($age >= $arg1);
     }
 
     /**
