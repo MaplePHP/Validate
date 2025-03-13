@@ -141,7 +141,7 @@ $unit->case("MaplePHP input validate test", function() {
         "equal" => [true],
     ], "Expect date to be true");
 
-    $this->add(Inp::value("1988-08-21")->age(36), [
+    $this->add(Inp::value("1988-08-21")->age(18), [
         "equal" => [true],
     ], "Expect age to be true");
 
