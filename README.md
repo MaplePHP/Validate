@@ -230,6 +230,18 @@ Inp::value($obj)->isObject();
 Inp::value($resource)->isResource();
 ```
 
+- **Json**:
+```php
+Inp::value($jsonStr)->isJson();
+```
+
+- **HTML Document**:
+```php
+Inp::value($jsonStr)->isFullHtml();
+```
+
+
+
 ### Validate if value is boolean or interpretable as a boolean
 - **Is Boolean**:
 ```php
