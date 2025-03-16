@@ -57,6 +57,18 @@ Inp::value("Lorem ipsum dolor")->equal("Lorem ipsum dolor");
 ```php
 Inp::value("Lorem ipsum dolor")->notEqual("Lorem ipsum");
 ```
+- **Contains**:
+```php
+Inp::value("Lorem ipsum dolor")->contains("ipsum");
+```
+- **Starts with**:
+```php
+Inp::value("Lorem ipsum dolor")->startsWith("Lorem");
+```
+- **Ends with**:
+```php
+Inp::value("Lorem ipsum dolor")->endsWith("dolor");
+```
 
 ### Validate if it's a valid email
 ```php
