@@ -57,6 +57,14 @@ Inp::value("Lorem ipsum dolor")->equal("Lorem ipsum dolor");
 ```php
 Inp::value("Lorem ipsum dolor")->notEqual("Lorem ipsum");
 ```
+- **More than**:
+```php
+Inp::value(200)->moreThan(100);
+```
+- **Less than**:
+```php
+Inp::value(100)->lessThan(200);
+```
 - **Contains**:
 ```php
 Inp::value("Lorem ipsum dolor")->contains("ipsum");
