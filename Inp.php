@@ -493,6 +493,59 @@ class Inp implements InpInterface
     }
 
     /**
+     * IF value is less than to parameter
+     * @param $num
+     * @return bool
+     */
+    public function lessThan($num): bool
+    {
+        return ($this->value < (float)$num);
+    }
+
+    /**
+     * IF value is more than to parameter
+     * @param $num
+     * @return bool
+     */
+    public function moreThan($num): bool
+    {
+        return ($this->value > (float)$num);
+    }
+
+    /**
+     * Checks if a string contains a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function contains(string $needle): bool
+    {
+        return str_contains($this->value, $needle);
+    }
+
+    /**
+     * Checks if a string starts with a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function startsWith(string $needle): bool
+    {
+        return str_starts_with($this->value, $needle);
+    }
+
+    /**
+     * Checks if a string ends with a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function endsWith(string $needle): bool
+    {
+        return str_ends_with($this->value, $needle);
+    }
+
+    /**
      * IF value equals to param
      * @param $str
      * @return bool
