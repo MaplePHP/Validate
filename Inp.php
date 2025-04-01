@@ -570,7 +570,7 @@ class Inp implements InpInterface
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
      * @param string $withVersion
-     * @param '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne' $operator
+     * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
      * @return bool
      */
     public function versionCompare(string $withVersion, string $operator = "=="): bool
