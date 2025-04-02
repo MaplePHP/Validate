@@ -77,6 +77,11 @@ class ValidatePool
     private mixed $value;
     private array $error = [];
 
+    /**
+     * Constructor for the ValidatePool class.
+     *
+     * @param mixed $value The initial value to be validated.
+     */
     public function __construct(mixed $value)
     {
         $this->value = $value;
@@ -108,6 +113,7 @@ class ValidatePool
      */
     public function getError(): array
     {
+        $this->error = array_filter($this->error);
         return $this->error;
     }
 
@@ -118,8 +124,7 @@ class ValidatePool
      */
     public function hasError(): bool
     {
-        $this->error = array_filter($this->error);
-        return !!$this->error;
+        return !!$this->getError();
     }
 
     /**
@@ -129,7 +134,6 @@ class ValidatePool
      */
     public function isValid(): bool
     {
-        $this->error = array_filter($this->error);
-        return !$this->error;
+        return !$this->getError();
     }
 }
