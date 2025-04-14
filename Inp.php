@@ -81,6 +81,46 @@ class Inp implements InpInterface
     }
 
     /**
+     * Makes it possible to travers to a value in array or object
+     *
+     * @param string $key
+     * @param bool $immutable
+     * @return self
+     * @throws ErrorException
+     */
+    public function traverse(string $key, bool $immutable = true): self
+    {
+        $value = $this->value;
+        if(is_array($this->value) || is_object($this->value)) {
+            $value = $this->traversDataFromStr($this->value, $key);
+            if(!$immutable && $value !== false) {
+                $this->value = $value;
+                return $this;
+            }
+        }
+        return self::value($value);
+    }
+
+    /**
+     * This will make it possible to validate arrays and object with one line
+     *
+     * @example validateInData(user.name, 'length', [1, 200]);
+     * @param string $key
+     * @param string $validate
+     * @param array $args
+     * @return mixed
+     * @throws ErrorException
+     */
+    public function validateInData(string $key, string $validate, array $args = []): bool
+    {
+        $inp = $this->traverse($key, false);
+        if(!method_exists($inp, $validate)) {
+            throw new \BadMethodCallException("Method '{$validate}' does not exist in " . __CLASS__ . " class.");
+        }
+        return $inp->{$validate}(...$args);
+    }
+
+    /**
      * Get value string length
      * @param string $value
      * @return int
@@ -90,6 +130,17 @@ class Inp implements InpInterface
     {
         $mb = new MB($value);
         return (int)$mb->strlen();
+    }
+
+    /**
+     * Get the current value
+     * _The value can be changes with travers method and this lets you peak at the new one_
+     *
+     * @return mixed
+     */
+    public function getValue(): mixed
+    {
+        return $this->value;
     }
 
     /**
@@ -470,6 +521,16 @@ class Inp implements InpInterface
     }
 
     /**
+     * Check int value is equal to int value
+     * @param int $value
+     * @return bool
+     */
+    public function count(int $value): bool
+    {
+        return (int)$this->value === $value;
+    }
+
+    /**
      * Value string length is equal to ($arg1)
      * @param  int  $arg1  length
      * @return bool
@@ -825,5 +886,30 @@ class Inp implements InpInterface
             }
         }
         return true;
+    }
+
+    // Move Helper function to new file later on
+
+    /**
+     * Will make it possible to traverse validation
+     *
+     * This is a helper function that
+     * @param array $array
+     * @param string $key
+     * @return mixed
+     */
+    private function traversDataFromStr(array $array, string $key): mixed
+    {
+        $new = $array;
+        $exp = explode(".", $key);
+        foreach ($exp as $index) {
+            $data = is_object($new) ? ($new->{$index} ?? null) : ($new[$index] ?? null);
+            if(is_null($data)) {
+                $new = false;
+                break;
+            }
+            $new = $data;
+        }
+        return $new;
     }
 }

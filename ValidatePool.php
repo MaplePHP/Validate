@@ -77,6 +77,8 @@ class ValidatePool
     private mixed $value;
     private array $error = [];
 
+    private ?Inp $inp = null;
+
     /**
      * Constructor for the ValidatePool class.
      *
@@ -85,6 +87,17 @@ class ValidatePool
     public function __construct(mixed $value)
     {
         $this->value = $value;
+    }
+
+    /**
+     * Get the current value
+     * _The value can be changes with travers method and this lets you peak at the new one_
+     *
+     * @return mixed
+     */
+    public function getValue(): mixed
+    {
+        return !is_null($this->inp) ? $this->inp->getValue() : $this->value;
     }
 
     /**
@@ -97,12 +110,35 @@ class ValidatePool
      */
     public function __call(string $name, array $arguments): self
     {
-        $inp = new Inp($this->value);
-        if(!method_exists($inp, $name)) {
+        $this->validateWith($name, $arguments);
+        return $this;
+    }
+
+    /**
+     * Access a validation from Inp instance
+     *
+     * @param string $name
+     * @param array $arguments
+     * @return bool
+     * @throws \ErrorException
+     */
+    public function validateWith(string $name, array $arguments = []): bool
+    {
+        $invert = str_starts_with($name, "!");
+        if ($invert) {
+            $name = substr($name, 1);
+        }
+
+        $this->inp = new Inp($this->value);
+        if(!method_exists($this->inp, $name)) {
             throw new \BadMethodCallException("Method $name does not exist in class " . Inp::class . ".");
         }
-        $this->error[$name] = !$inp->$name(...$arguments);
-        return $this;
+        $valid = $this->inp->$name(...$arguments);
+        if($invert) {
+            $valid = !$valid;
+        }
+        $this->error[$name] = !$valid;
+        return $valid;
     }
 
     /**

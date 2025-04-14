@@ -21,6 +21,23 @@ $valid = Inp::value("Lorem ipsum dolor")->length(1, 200);
 var_dump($valid); // true
 ```
 
+## Travers
+It is possible to traverse validate items inside arrays and objects. 
+```php
+$inp = new Inp([
+  "user" => [
+    "name" => "John Doe",
+    "email" => "john.doe@gmail.com",
+  ]
+]);
+$valid = $inp->traverse("user.name")->length(1, 200);
+// This below is the same as above but can be used for other purposes
+// $valid = $inp->validateInData("user.name", "length", [1, 200]);
+
+var_dump($valid); // true
+```
+
+
 ## Validations
 
 ### Required field
