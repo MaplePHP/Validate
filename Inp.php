@@ -14,6 +14,7 @@ use Exception;
 use MaplePHP\DTO\MB;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\DTO\Format\Str;
+use MaplePHP\DTO\Format\Arr;
 use DateTime;
 
 class Inp implements InpInterface
@@ -45,14 +46,18 @@ class Inp implements InpInterface
     /**
      * Start instance
      * @param mixed $value the input value
-     * @throws ErrorException
      */
     public function __construct(mixed $value)
     {
         $this->value = $value;
         $this->dateTime = new DateTime("now");
-        if(is_string($value) || is_numeric($value)) {
-            $this->length = $this->getLength((string)$value);
+        $this->init();
+    }
+
+    private function init(): void
+    {
+        if(is_string($this->value) || is_numeric($this->value)) {
+            $this->length = $this->getLength((string)$this->value);
             $this->getStr = new Str($this->value);
         }
     }
@@ -95,6 +100,7 @@ class Inp implements InpInterface
             $value = $this->traversDataFromStr($this->value, $key);
             if(!$immutable && $value !== false) {
                 $this->value = $value;
+                $this->init();
                 return $this;
             }
         }
@@ -443,17 +449,13 @@ class Inp implements InpInterface
      * Value is number
      * @return bool
      */
-    public function number(): bool
+    public function isNumber(): bool
     {
         return (is_numeric($this->value));
     }
 
-    public function numeric(): bool
-    {
-        return $this->number();
-    }
-
-    public function numericVal(): bool
+    // Alias
+    public function number(): bool
     {
         return $this->number();
     }
@@ -462,18 +464,28 @@ class Inp implements InpInterface
      * Value is number positive 20
      * @return bool
      */
-    public function positive(): bool
+    public function isPositive(): bool
     {
         return ((float)$this->value >= 0);
+    }
+
+    public function positive(): bool
+    {
+        return $this->isPositive();
     }
 
     /**
      * Value is number negative -20
      * @return bool
      */
-    public function negative(): bool
+    public function isNegative(): bool
     {
         return ((float)$this->value < 0);
+    }
+
+    public function negative(): bool
+    {
+        return $this->isNegative();
     }
 
     /**
@@ -521,56 +533,172 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check int value is equal to int value
-     * @param int $value
+     * Check if array is empty
+     *
      * @return bool
      */
-    public function count(int $value): bool
+    public function isArrayEmpty(): bool
     {
-        return (int)$this->value === $value;
+        return ($this->isArray() && count($this->value) === 0);
     }
 
     /**
-     * Value string length is equal to ($arg1)
-     * @param  int  $arg1  length
+     * Check if all items in array is truthy
+     *
+     * @param string|int|float $key
      * @return bool
      */
-    public function equalLength(int $arg1): bool
+    public function itemsAreTruthy(string|int|float $key): bool
     {
-        if ($this->length === $arg1) {
-            return true;
+        if($this->isArray()) {
+            $count = Arr::value($this->value)
+                ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
+                ->count();
+            return ($count === count($this->value));
         }
         return false;
     }
 
     /**
-     * IF value equals to param
-     * @param $str
+     * Check if truthy item exist in array
+     *
+     * @param string|int|float $key
      * @return bool
      */
-    public function equal($str): bool
+    public function hasTruthyItem(string|int|float $key): bool
     {
-        return ($this->value === $str);
+        if($this->isArray()) {
+            $count = Arr::value($this->value)
+                ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
+                ->count();
+            return ($count > 0);
+        }
+        return false;
+    }
+
+    /**
+     * Validate array length equal to
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountEqualTo(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) === $length);
+    }
+
+    /**
+     * Validate array length is more than
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountMoreThan(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) > $length);
+    }
+
+    /**
+     * Validate array length is less than
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountLessThan(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) < $length);
+    }
+
+
+    /**
+     * Check int value is equal to int value
+     * @param int $value
+     * @return bool
+     */
+    public function toIntEqual(int $value): bool
+    {
+        return (int)$this->value === $value;
+    }
+
+    /**
+     * Value string length is equal to ($length)
+     * @param  int  $length
+     * @return bool
+     */
+    public function isLengthEqualTo(int $length): bool
+    {
+        if ($this->length === $length) {
+            return true;
+        }
+        return false;
+    }
+
+    public function equalLength(int $length): bool
+    {
+        return $this->isLengthEqualTo($length);
+    }
+
+    /**
+     * IF value equals to param
+     * @param mixed $value
+     * @return bool
+     */
+    public function isEqualTo(mixed $value): bool
+    {
+        return ($this->value === $value);
+    }
+
+    // Alias
+    public function equal(mixed $value): bool
+    {
+        return $this->isEqualTo($value);
+    }
+
+    /**
+     * IF value equals to param
+     * @param mixed $value
+     * @return bool
+     */
+    public function isNotEqualTo(mixed $value): bool
+    {
+        return ($this->value !== $value);
+    }
+
+    public function notEqual(mixed $value): bool
+    {
+        return $this->isNotEqualTo($value);
     }
 
     /**
      * IF value is less than to parameter
-     * @param $num
+     * @param float|int $num
      * @return bool
      */
-    public function lessThan($num): bool
+    public function isLessThan(float|int $num): bool
     {
-        return ($this->value < (float)$num);
+        return ($this->value < $num);
+    }
+
+    // Shortcut
+    public function lessThan(float|int $num): bool
+    {
+        return $this->isLessThan($num);
     }
 
     /**
      * IF value is more than to parameter
-     * @param $num
+     * @param float|int $num
      * @return bool
      */
-    public function moreThan($num): bool
+    public function isMoreThan(float|int $num): bool
     {
-        return ($this->value > (float)$num);
+        return ($this->value > $num);
+    }
+
+    // Alias
+    public function moreThan(float|int $num): bool
+    {
+        return $this->isMoreThan($num);
     }
 
     /**
@@ -607,25 +735,20 @@ class Inp implements InpInterface
     }
 
     /**
-     * IF value equals to param
-     * @param $str
-     * @return bool
-     */
-    public function notEqual($str): bool
-    {
-        return ($this->value !== $str);
-    }
-
-    /**
      * Check is a valid version number
      * @param bool $strict (validate as a semantic Versioning, e.g. 1.0.0)
      * @return bool
      */
-    public function validVersion(bool $strict = false): bool
+    public function isValidVersion(bool $strict = false): bool
     {
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
         $compare = version_compare((string)$this->value, '0.0.1', '>=');
         return ($strictMatch && $compare !== false && $compare >= 0);
+    }
+
+    public function validVersion(bool $strict = false): bool
+    {
+        return $this->isValidVersion();
     }
 
     /**

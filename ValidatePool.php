@@ -6,6 +6,8 @@ namespace MaplePHP\Validate;
  * @method self withValue(mixed $value)
  * @method self value(mixed $value)
  * @method self getLength(string $value)
+ * @method self traverse(string $key, bool $immutable = true)
+ * @method self validateInData(string $key, string $validate, array $args = [])
  * @method self luhn()
  * @method self required()
  * @method self hasValue()
@@ -122,7 +124,7 @@ class ValidatePool
      * @return bool
      * @throws \ErrorException
      */
-    public function validateWith(string $name, array $arguments = []): bool
+    public function validateWith(string $name, array $arguments = []): bool|self
     {
         $invert = str_starts_with($name, "!");
         if ($invert) {
@@ -134,6 +136,13 @@ class ValidatePool
             throw new \BadMethodCallException("Method $name does not exist in class " . Inp::class . ".");
         }
         $valid = $this->inp->$name(...$arguments);
+
+        // If using traverse method in Inp
+        if($valid instanceof Inp) {
+            throw new \BadMethodCallException("The method ->$name() is not supported with " .
+                __CLASS__ . ". Use ->validateInData() instead!");
+        }
+
         if($invert) {
             $valid = !$valid;
         }

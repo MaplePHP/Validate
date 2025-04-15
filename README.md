@@ -62,25 +62,25 @@ Inp::value("Lorem ipsum dolor")->length(1, 160);
 
 ### Check if string has an exact length
 ```php
-Inp::value("Lorem ipsum dolor")->equalLength(10);
+Inp::value("Lorem ipsum dolor")->isLengthEqualTo(10);
 ```
 
 ### Check if value equals or not equals another value
 - **Equals**:
 ```php
-Inp::value("Lorem ipsum dolor")->equal("Lorem ipsum dolor");
+Inp::value("Lorem ipsum dolor")->isEqualTo("Lorem ipsum dolor");
 ```
 - **Not equals**:
 ```php
-Inp::value("Lorem ipsum dolor")->notEqual("Lorem ipsum");
+Inp::value("Lorem ipsum dolor")->isNotEqualTo("Lorem ipsum");
 ```
 - **More than**:
 ```php
-Inp::value(200)->moreThan(100);
+Inp::value(200)->isMoreThan(100);
 ```
 - **Less than**:
 ```php
-Inp::value(100)->lessThan(200);
+Inp::value(100)->isLessThan(200);
 ```
 - **Contains**:
 ```php
@@ -128,32 +128,33 @@ Inp::value("SE8272267913")->vatNumber();
 
 ### Check if value is a valid float
 ```php
-Inp::value("3.1415")->isFloat();
+Inp::value(3.1415)->isFloat();
 ```
 
 ### Check if value is a valid integer
 ```php
-Inp::value("42")->isInt();
+Inp::value(42)->isInt();
 ```
 
 ### Check if value is a valid number (numeric)
 ```php
-Inp::value("42")->number();
+Inp::value(42)->isNumber();
 ```
 
 ### Check if value is positive or negative
 - **Positive**:
 ```php
-Inp::value("20")->positive();
+Inp::value(20)->isPositive();
 ```
 - **Negative**:
 ```php
-Inp::value("-20")->negative();
+Inp::value(-20)->isNegative();
 ```
 
 ### Check if value is a valid version number
 ```php
-Inp::value("1.0.0")->validVersion(true); // strict semantic versioning
+// True === validate as a semantic Versioning, e.g. 1.0.0
+Inp::value("1.0.0")->isValidVersion(true);
 ```
 
 ### Compare version with another version
@@ -253,7 +254,73 @@ Inp::value("12345")->zip(5);
 Inp::value("abc")->pregMatch("a-zA-Z");
 ```
 
-### Validate if value is an array, object, or resource
+## Validate Arrays
+
+### Check if is an array
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isArray();
+```
+
+### Check if array is empty
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isArrayEmpty();
+```
+
+### Check if all items in array is truthy
+```php
+Inp::value(["1", true, "Lemon"])->itemsAreTruthy();
+```
+
+### Check if truthy item exist in array
+```php
+Inp::value(["1", false, "Lemon"])->hasTruthyItem();
+```
+
+
+
+### Check if array count is equal to length
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isCountEqualTo(3);
+```
+
+### Check if array count is more than the length
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isCountMoreThan(1);
+```
+
+### Check if array count is less than the length
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isCountLessThan(4);
+```
+
+
+### Check if value is a valid float
+```php
+Inp::value("Lorem ipsum dolor")->isString();
+```
+
+## Validate types
+
+### Check if value is a valid float
+```php
+Inp::value("Lorem ipsum dolor")->isString();
+```
+### Check if value is a valid float
+```php
+Inp::value(3.1415)->isFloat();
+```
+### Check if value is a valid integer
+```php
+Inp::value(42)->isInt();
+```
+- **Is Boolean**:
+```php
+Inp::value(true)->isBool();
+```
+- **Is Boolean-like value** (e.g., "yes", "no", "1", "0"):
+```php
+Inp::value("yes")->isBoolVal();
+```
 - **Array**:
 ```php
 Inp::value([1, 2, 3])->isArray();
@@ -277,17 +344,6 @@ Inp::value($jsonStr)->isJson();
 Inp::value($jsonStr)->isFullHtml();
 ```
 
-
-
-### Validate if value is boolean or interpretable as a boolean
-- **Is Boolean**:
-```php
-Inp::value(true)->isBool();
-```
-- **Is Boolean-like value** (e.g., "yes", "no", "1", "0"):
-```php
-Inp::value("yes")->isBoolVal();
-```
 
 ### Validate using multiple methods (one or all must match)
 - **Validate if one method passes**:
