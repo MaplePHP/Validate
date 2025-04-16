@@ -9,6 +9,7 @@
 namespace MaplePHP\Validate;
 
 use ErrorException;
+use MaplePHP\DTO\Traverse;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\Validate\Traits\InpAliases;
 use MaplePHP\DTO\MB;
@@ -99,11 +100,11 @@ class Inp implements InpInterface
      * @return self
      * @throws ErrorException
      */
-    public function traverse(string $key, bool $immutable = true): self
+    public function eq(string $key, bool $immutable = true): self
     {
         $value = $this->value;
         if(is_array($this->value) || is_object($this->value)) {
-            $value = $this->traversDataFromStr($this->value, $key);
+            $value = Traverse::value($this->value)->eq($key)->get();
             if(!$immutable && $value !== false) {
                 $this->value = $value;
                 $this->init();
@@ -125,7 +126,7 @@ class Inp implements InpInterface
      */
     public function validateInData(string $key, string $validate, array $args = []): bool
     {
-        $inp = $this->traverse($key, false);
+        $inp = $this->eq($key, false);
         if(!method_exists($inp, $validate)) {
             throw new \BadMethodCallException("Method '{$validate}' does not exist in " . __CLASS__ . " class.");
         }
@@ -955,28 +956,4 @@ class Inp implements InpInterface
         return true;
     }
 
-    // Move Helper function to new file later on
-
-    /**
-     * Will make it possible to traverse validation
-     *
-     * This is a helper function that
-     * @param array $array
-     * @param string $key
-     * @return mixed
-     */
-    private function traversDataFromStr(array $array, string $key): mixed
-    {
-        $new = $array;
-        $exp = explode(".", $key);
-        foreach ($exp as $index) {
-            $data = is_object($new) ? ($new->{$index} ?? null) : ($new[$index] ?? null);
-            if(is_null($data)) {
-                $new = false;
-                break;
-            }
-            $new = $data;
-        }
-        return $new;
-    }
 }

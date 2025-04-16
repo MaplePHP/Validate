@@ -1,28 +1,42 @@
 # MaplePHP - Validation
 MaplePHP - Validation is a lightweight and powerful PHP library designed to simplify the validation of various data inputs. Whether you're verifying if a value is a valid email or phone number, ensuring string lengths, or performing more advanced checks like credit card numbers and dates, MaplePHP - Validation offers a comprehensive and intuitive approach. With its wide range of built-in validators and simple syntax, it makes handling complex validation tasks easier, leading to cleaner and more reliable code.
 
+Absolutely! Here's a revised version of your documentation that improves clarity, grammar, formatting, and consistency while preserving your original intentions. I’ve also added brief explanations where helpful and improved phrasing for better readability.
+
+---
+
 ## Installation
-```
+
+Install the library via Composer:
+
+```bash
 composer require maplephp/validate
 ```
 
-## Initiation
-You will always initiate an instance with the static method **_val** followed by a value you want to validate.
+---
+
+## Getting Started
+
+You can validate values by instantiating the `Inp` class. There are two ways to do this:
 
 ```php
 use MaplePHP\Validate\Inp;
 
-// Validate option 1
+// Option 1: Create an instance
 $inp = new Inp("Lorem ipsum dolor");
 var_dump($inp->length(1, 200)); // true
 
-// Validate option 2
+// Option 2: Use the static method for cleaner syntax
 $valid = Inp::value("Lorem ipsum dolor")->length(1, 200);
 var_dump($valid); // true
 ```
 
-## Traverse
-It is possible to traverse and validate items inside a collection 
+---
+
+## Validating Nested Data
+
+You can traverse nested arrays or objects and validate specific values using dot notation:
+
 ```php
 $inp = new Inp([
   "user" => [
@@ -30,25 +44,39 @@ $inp = new Inp([
     "email" => "john.doe@gmail.com",
   ]
 ]);
-$valid = $inp->traverse("user.name")->length(1, 200);
-// This below is the same as above but can be used for other purposes
-// $valid = $inp->validateInData("user.name", "length", [1, 200]);
+
+$valid = $inp->eq("user.name")->length(1, 200);
 
 var_dump($valid); // true
 ```
 
-## Validation Pool
-Validation Pool is like `Inp` except it helps you making multiple validations in same instance. 
+> 💡 You can also use `validateInData()` for more dynamic validations:
 ```php
+$valid = $inp->validateInData("user.name", "length", [1, 200]);
+```
+
+---
+
+## Using the Validation Pool
+
+The `ValidatePool` class allows you to chain multiple validations on a single value and check the overall result:
+
+```php
+use MaplePHP\Validate\ValidatePool;
+
 $validPool = new ValidatePool("john.doe@gmail.com");
+
 $validPool->isEmail()
     ->length(1, 200)
     ->endsWith(".com");
+
 $isValid = $validPool->isValid();
 // $hasError = $validPool->hasError();
 
 var_dump($isValid); // true
 ```
+
+> 🧠 `ValidatePool` is useful when you want to collect and evaluate multiple validation rules at once.
 
 
 ## Validations
