@@ -1,8 +1,5 @@
 # MaplePHP - Validation
 MaplePHP - Validation is a lightweight and powerful PHP library designed to simplify the validation of various data inputs. Whether you're verifying if a value is a valid email or phone number, ensuring string lengths, or performing more advanced checks like credit card numbers and dates, MaplePHP - Validation offers a comprehensive and intuitive approach. With its wide range of built-in validators and simple syntax, it makes handling complex validation tasks easier, leading to cleaner and more reliable code.
-
-Absolutely! Here's a revised version of your documentation that improves clarity, grammar, formatting, and consistency while preserving your original intentions. I’ve also added brief explanations where helpful and improved phrasing for better readability.
-
 ---
 
 ## Installation
