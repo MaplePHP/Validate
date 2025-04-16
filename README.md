@@ -21,8 +21,8 @@ $valid = Inp::value("Lorem ipsum dolor")->length(1, 200);
 var_dump($valid); // true
 ```
 
-## Travers
-It is possible to traverse validate items inside arrays and objects. 
+## Traverse
+It is possible to traverse and validate items inside a collection 
 ```php
 $inp = new Inp([
   "user" => [
@@ -37,12 +37,25 @@ $valid = $inp->traverse("user.name")->length(1, 200);
 var_dump($valid); // true
 ```
 
+## Validation Pool
+Validation Pool is like `Inp` except it helps you making multiple validations in same instance. 
+```php
+$validPool = new ValidatePool("john.doe@gmail.com");
+$validPool->isEmail()
+    ->length(1, 200)
+    ->endsWith(".com");
+$isValid = $validPool->isValid();
+// $hasError = $validPool->hasError();
+
+var_dump($isValid); // true
+```
+
 
 ## Validations
 
 ### Required field
 ```php
-Inp::value("Lorem ipsum dolor")->required();
+Inp::value("Lorem ipsum dolor")->isRequired();
 ```
 
 ### Check if there is any value (even if it's 0)
@@ -97,33 +110,33 @@ Inp::value("Lorem ipsum dolor")->endsWith("dolor");
 
 ### Validate if it's a valid email
 ```php
-Inp::value("john@gmail.com")->email();
+Inp::value("john@gmail.com")->isEmail();
 ```
 
 ### Validate if it's a valid phone number
 Allows numbers and special characters ("-", "+", " ").
 ```php
-Inp::value("+46709676040")->phone();
+Inp::value("+46709676040")->isPhone();
 ```
 
-### Validate Swedish personal number (personnummer)
+### Validate Swedish personal number (personnel)
 ```php
-Inp::value("198808213412")->socialNumber();
+Inp::value("198808213412")->isSocialNumber();
 ```
 
 ### Validate Swedish organization number
 ```php
-Inp::value("197511043412")->orgNumber();
+Inp::value("197511043412")->isOrgNumber();
 ```
 
 ### Validate credit card number
 ```php
-Inp::value("1616523623422334")->creditCard();
+Inp::value("1616523623422334")->isCreditCard();
 ```
 
 ### Validate VAT number
 ```php
-Inp::value("SE8272267913")->vatNumber();
+Inp::value("SE8272267913")->isVatNumber();
 ```
 
 ### Check if value is a valid float
@@ -165,11 +178,11 @@ Inp::value("1.0.0")->versionCompare("2.0.0", '>=');
 ### Validate password (lossy or strict)
 - **Lossy password (minimum character set)**:
 ```php
-Inp::value("password123")->lossyPassword(8);
+Inp::value("password123")->isLossyPassword(8);
 ```
 - **Strict password** (requires at least one lowercase, uppercase, digit, and special character):
 ```php
-Inp::value("Password#123!")->strictPassword(8);
+Inp::value("Password#123!")->isStrictPassword(8);
 ```
 
 ### Validate if value is string and contains only A-Z
@@ -192,38 +205,48 @@ Inp::value("#000000")->hex();
 ```
 
 ### Check if it's a valid date
+As default you can validate against a date format like this "Y-m-d"
 ```php
-Inp::value("2022-02-13")->date("Y-m-d");
+Inp::value("2022-02-13")->isDate();
+```
+Custom date validation  
+```php
+Inp::value("2022/02/13 14:15")->isDate(Y/m/d H:i);
 ```
 
 ### Check if it's a valid date and time
 ```php
-Inp::value("2022-02-13 14:15")->dateTime("Y-m-d H:i");
+Inp::value("2022-02-13 14:15:58")->isDateWithTime();
 ```
 
 ### Check if it's a valid time
+Validate hour and minutes
 ```php
-Inp::value("14:15")->time("H:i");
+Inp::value("14:15")->isTime();
+```
+Validate hour, minutes and seconds
+```php
+Inp::value("14:15:58")->isTime(true);
 ```
 
 ### Check if someone is at least a certain age
 ```php
-Inp::value("1988-05-22")->age(18);
+Inp::value("1988-05-22")->isAge(18);
 ```
 
 ### Check if it's a valid domain name
 ```php
-Inp::value("example.com")->domain();
+Inp::value("example.com")->isDomain();
 ```
 
 ### Check if it's a valid URL (http/https is required)
 ```php
-Inp::value("https://example.com/page")->url();
+Inp::value("https://example.com/page")->isUrl();
 ```
 
 ### Check if it's a valid DNS entry
 ```php
-Inp::value("example.com")->dns();
+Inp::value("example.com")->isDns();
 ```
 
 ### Validate file and directory properties
@@ -246,7 +269,7 @@ Inp::value("/path/to/file.txt")->isReadable();
 
 ### Validate ZIP code (with custom length)
 ```php
-Inp::value("12345")->zip(5);
+Inp::value("12345")->isZip(5);
 ```
 
 ### Validate if value matches a pattern (regex)

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @Package:    MaplePHP - Input validation library
  * @Author:     Daniel Ronkainen
@@ -10,15 +9,16 @@
 namespace MaplePHP\Validate;
 
 use ErrorException;
-use Exception;
-use MaplePHP\DTO\MB;
 use MaplePHP\Validate\Interfaces\InpInterface;
+use MaplePHP\Validate\Traits\InpAliases;
+use MaplePHP\DTO\MB;
 use MaplePHP\DTO\Format\Str;
 use MaplePHP\DTO\Format\Arr;
 use DateTime;
 
 class Inp implements InpInterface
 {
+    use InpAliases;
     public const WHITELIST_OPERATORS = [
         '!=',
         '<',
@@ -46,6 +46,7 @@ class Inp implements InpInterface
     /**
      * Start instance
      * @param mixed $value the input value
+     * @throws ErrorException
      */
     public function __construct(mixed $value)
     {
@@ -54,6 +55,11 @@ class Inp implements InpInterface
         $this->init();
     }
 
+    /**
+     * Used to reset length in traverse with "mutable" flag
+     * @return void
+     * @throws ErrorException
+     */
     private function init(): void
     {
         if(is_string($this->value) || is_numeric($this->value)) {
@@ -165,7 +171,7 @@ class Inp implements InpInterface
      * Will check if value if empty (e.g. "", 0, NULL) = false
      * @return bool
      */
-    public function required(): bool
+    public function isRequired(): bool
     {
         if ($this->length(1) && !empty($this->value)) {
             return true;
@@ -183,28 +189,19 @@ class Inp implements InpInterface
     }
 
     /**
-     * Validate Swedish personal numbers
+     * Validate Swedish personal numbers (personalNumber)
      * @return bool
      */
-    public function socialNumber(): bool
+    public function isSocialNumber(): bool
     {
         return $this->luhn()->personnummer();
-    }
-
-    /**
-     * Validate Swedish personal numbers
-     * @return bool
-     */
-    public function personalNumber(): bool
-    {
-        return $this->socialNumber();
     }
 
     /**
      * Validate Swedish org numbers
      * @return bool
      */
-    public function orgNumber(): bool
+    public function isOrgNumber(): bool
     {
         return $this->luhn()->orgNumber();
     }
@@ -213,16 +210,16 @@ class Inp implements InpInterface
      * Validate credit card numbers (THIS needs to be tested)
      * @return bool
      */
-    public function creditCard(): bool
+    public function isCreditCard(): bool
     {
-        return $this->luhn()->creditcard();
+        return $this->luhn()->creditCard();
     }
 
     /**
      * Validate Swedish vat number
      * @return bool
      */
-    public function vatNumber(): bool
+    public function isVatNumber(): bool
     {
         return $this->luhn()->vatNumber();
     }
@@ -233,7 +230,7 @@ class Inp implements InpInterface
      * manually with the method @dns but in most cases this will not be necessary.
      * @return bool
      */
-    public function email(): bool
+    public function isEmail(): bool
     {
         return (filter_var($this->value, FILTER_VALIDATE_EMAIL) !== false);
     }
@@ -254,7 +251,7 @@ class Inp implements InpInterface
      * Check if is a phone number
      * @return bool
      */
-    public function phone(): bool
+    public function isPhone(): bool
     {
         if (is_null($this->getStr)) {
             return false;
@@ -267,19 +264,19 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid ZIP
-     * @param int $arg1 start length
-     * @param int|null $arg2 end length
+     * @param int $minLength start length
+     * @param int|null $maxLength end length
      * @return bool
      * @throws ErrorException
      */
-    public function zip(int $arg1, ?int $arg2 = null): bool
+    public function isZip(int $minLength, ?int $maxLength = null): bool
     {
         if (is_null($this->getStr)) {
             return false;
         }
         $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""]);
         $this->length = $this->getLength($this->value);
-        return ($this->isInt() && $this->length($arg1, $arg2));
+        return ($this->isInt() && $this->length($minLength, $maxLength));
     }
 
     /**
@@ -454,12 +451,6 @@ class Inp implements InpInterface
         return (is_numeric($this->value));
     }
 
-    // Alias
-    public function number(): bool
-    {
-        return $this->number();
-    }
-
     /**
      * Value is number positive 20
      * @return bool
@@ -469,11 +460,6 @@ class Inp implements InpInterface
         return ((float)$this->value >= 0);
     }
 
-    public function positive(): bool
-    {
-        return $this->isPositive();
-    }
-
     /**
      * Value is number negative -20
      * @return bool
@@ -481,11 +467,6 @@ class Inp implements InpInterface
     public function isNegative(): bool
     {
         return ((float)$this->value < 0);
-    }
-
-    public function negative(): bool
-    {
-        return $this->isNegative();
     }
 
     /**
@@ -609,7 +590,6 @@ class Inp implements InpInterface
         return ($this->isArray() && count($this->value) < $length);
     }
 
-
     /**
      * Check int value is equal to int value
      * @param int $value
@@ -633,11 +613,6 @@ class Inp implements InpInterface
         return false;
     }
 
-    public function equalLength(int $length): bool
-    {
-        return $this->isLengthEqualTo($length);
-    }
-
     /**
      * IF value equals to param
      * @param mixed $value
@@ -646,12 +621,6 @@ class Inp implements InpInterface
     public function isEqualTo(mixed $value): bool
     {
         return ($this->value === $value);
-    }
-
-    // Alias
-    public function equal(mixed $value): bool
-    {
-        return $this->isEqualTo($value);
     }
 
     /**
@@ -664,11 +633,6 @@ class Inp implements InpInterface
         return ($this->value !== $value);
     }
 
-    public function notEqual(mixed $value): bool
-    {
-        return $this->isNotEqualTo($value);
-    }
-
     /**
      * IF value is less than to parameter
      * @param float|int $num
@@ -679,12 +643,6 @@ class Inp implements InpInterface
         return ($this->value < $num);
     }
 
-    // Shortcut
-    public function lessThan(float|int $num): bool
-    {
-        return $this->isLessThan($num);
-    }
-
     /**
      * IF value is more than to parameter
      * @param float|int $num
@@ -693,12 +651,6 @@ class Inp implements InpInterface
     public function isMoreThan(float|int $num): bool
     {
         return ($this->value > $num);
-    }
-
-    // Alias
-    public function moreThan(float|int $num): bool
-    {
-        return $this->isMoreThan($num);
     }
 
     /**
@@ -746,11 +698,6 @@ class Inp implements InpInterface
         return ($strictMatch && $compare !== false && $compare >= 0);
     }
 
-    public function validVersion(bool $strict = false): bool
-    {
-        return $this->isValidVersion();
-    }
-
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
      * @param string $withVersion
@@ -772,7 +719,7 @@ class Inp implements InpInterface
      * @param integer $length Minimum length
      * @return bool
      */
-    public function lossyPassword(int $length = 1): bool
+    public function isLossyPassword(int $length = 1): bool
     {
         return ((int)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) > 0);
     }
@@ -789,7 +736,7 @@ class Inp implements InpInterface
      * @param integer $length Minimum length
      * @return bool
      */
-    public function strictPassword(int $length = 1): bool
+    public function isStrictPassword(int $length = 1): bool
     {
         $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/';
         return ((int)preg_match($pattern, $this->value) > 0);
@@ -804,7 +751,6 @@ class Inp implements InpInterface
     {
         return ((int)preg_match("/^[" . $matchStr . "]+$/", $this->value) > 0);
     }
-
 
     /**
      * Is value is string and character between a-z or A-Z
@@ -837,7 +783,7 @@ class Inp implements InpInterface
      * Is Hex color code string
      * @return bool
      */
-    public function hex(): bool
+    public function isHex(): bool
     {
         return ((int)preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) > 0);
     }
@@ -847,30 +793,28 @@ class Inp implements InpInterface
      * @param string $format validate after this date format (default Y-m-d)
      * @return bool
      */
-    public function date(string $format = "Y-m-d"): bool
+    public function isDate(string $format = "Y-m-d"): bool
     {
         return (DateTime::createFromFormat($format, $this->value) !== false);
     }
 
-
     /**
      * Check if is a date and time
-     * @param string $format  validate after this date format (default Y-m-d H:i)
      * @return bool
      */
-    public function dateTime(string $format = "Y-m-d H:i"): bool
+    public function isDateWithTime(): bool
     {
-        return $this->date($format);
+        return $this->date("Y-m-d H:i:s");
     }
 
     /**
      * Check if is a date and time
-     * @param string $format  validate after this date format (default Y-m-d H:i)
+     * @param bool $withSeconds
      * @return bool
      */
-    public function time(string $format = "H:i"): bool
+    public function isTime(bool $withSeconds = false): bool
     {
-        return $this->date($format);
+        return $this->date("H:i" . ($withSeconds ? ":s" : ""));
     }
 
     /**
@@ -894,17 +838,17 @@ class Inp implements InpInterface
 
     /**
      * Check "minimum" age (value format should be validated date "Y-m-d")
-     * @param int $arg1  18: user should be 18 or older
+     * @param int $checkAge
      * @return bool
-     * @throws Exception
+     * @throws \DateMalformedStringException
      */
-    public function age(int $arg1): bool
+    public function isAge(int $checkAge): bool
     {
         $now = (int)$this->dateTime->format("Y");
         $dateTime = new DateTime($this->value);
         $birth = (int)$dateTime->format("Y");
         $age = ($now - $birth);
-        return ($age >= $arg1);
+        return ($age >= $checkAge);
     }
 
     /**
@@ -912,7 +856,7 @@ class Inp implements InpInterface
      * @param  bool $strict stricter = true
      * @return bool
      */
-    public function domain(bool $strict = true): bool
+    public function isDomain(bool $strict = true): bool
     {
         $strict = ($strict) ? FILTER_FLAG_HOSTNAME : 0;
         return (filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $strict) !== false);
@@ -922,7 +866,7 @@ class Inp implements InpInterface
      * Check if is valid URL (http|https is required)
      * @return bool
      */
-    public function url(): bool
+    public function isUrl(): bool
     {
         return (filter_var($this->value, FILTER_VALIDATE_URL) !== false);
     }
@@ -933,7 +877,7 @@ class Inp implements InpInterface
      * @noinspection PhpComposerExtensionStubsInspection
      * @return bool
      */
-    public function dns(): bool
+    public function isDns(): bool
     {
         $AResult = true;
         $host = $this->getHost($this->value);

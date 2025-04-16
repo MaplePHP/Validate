@@ -2,6 +2,9 @@
 
 namespace MaplePHP\Validate;
 
+use BadMethodCallException;
+use ErrorException;
+
 /**
  * @method self withValue(mixed $value)
  * @method self value(mixed $value)
@@ -108,7 +111,7 @@ class ValidatePool
      * @param string $name The name of the method being called.
      * @param array $arguments The arguments passed to the method.
      * @return self Returns the current instance of the class.
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     public function __call(string $name, array $arguments): self
     {
@@ -122,9 +125,9 @@ class ValidatePool
      * @param string $name
      * @param array $arguments
      * @return bool
-     * @throws \ErrorException
+     * @throws ErrorException
      */
-    public function validateWith(string $name, array $arguments = []): bool|self
+    public function validateWith(string $name, array $arguments = []): bool
     {
         $invert = str_starts_with($name, "!");
         if ($invert) {
@@ -133,13 +136,13 @@ class ValidatePool
 
         $this->inp = new Inp($this->value);
         if(!method_exists($this->inp, $name)) {
-            throw new \BadMethodCallException("Method $name does not exist in class " . Inp::class . ".");
+            throw new BadMethodCallException("Method $name does not exist in class " . Inp::class . ".");
         }
         $valid = $this->inp->$name(...$arguments);
 
         // If using traverse method in Inp
         if($valid instanceof Inp) {
-            throw new \BadMethodCallException("The method ->$name() is not supported with " .
+            throw new BadMethodCallException("The method ->$name() is not supported with " .
                 __CLASS__ . ". Use ->validateInData() instead!");
         }
 
