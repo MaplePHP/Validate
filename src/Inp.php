@@ -181,6 +181,79 @@ class Inp implements InpInterface
     }
 
     /**
+     * Strict data type validation check if is false
+     *
+     * @return bool
+     */
+    public function isTrue(): bool
+    {
+        return $this->value === true;
+    }
+
+    /**
+     * Flexible data type validation check if is truthy
+     *
+     * @return bool
+     */
+    public function isisTruthy(): bool
+    {
+        return filter_var($this->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+    }
+
+    /**
+     * Strict data type validation check if is false
+     *
+     * @return bool
+     */
+    public function isFalse(): bool
+    {
+        return $this->value === false;
+    }
+
+    /**
+     * Flexible data type validation check if is falsy
+     *
+     * @return bool
+     */
+    public function isFalsy(): bool
+    {
+        return filter_var($this->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === false;
+    }
+
+    /**
+     * Strict data type validation check if value exists in given array
+     *
+     * @param array $haystack
+     * @return bool
+     */
+    public function isInArray(array $haystack): bool
+    {
+        return in_array($this->value, $haystack, true);
+    }
+
+    /**
+     * Flexible data type validation check if value exists in given array
+     *
+     * @param array $haystack
+     * @return bool
+     */
+    public function isLooselyInArray(array $haystack): bool
+    {
+        return in_array($this->value, $haystack);
+    }
+
+    /**
+     * Strict data type validation check if key exists in array
+     *
+     * @param string|int $key
+     * @return bool
+     */
+    public function keyExists(string|int $key): bool
+    {
+        return is_array($this->value) && array_key_exists($key, $this->value);
+    }
+
+    /**
      * Will only check if there is a value (e.g. 0) = true
      * @return bool
      */
@@ -615,21 +688,46 @@ class Inp implements InpInterface
     }
 
     /**
-     * IF value equals to param
-     * @param mixed $value
+     * Strict data type validation check if equals to expected value
+     *
+     * @param mixed $expected
      * @return bool
      */
-    public function isEqualTo(mixed $value): bool
+    public function isEqualTo(mixed $expected): bool
     {
-        return ($this->value === $value);
+        return $this->value === $expected;
     }
 
     /**
-     * IF value equals to param
+     * Flexible data type validation check if loosely equals to expected value
+     *
+     * @param mixed $expected
+     * @return bool
+     */
+    public function isLooselyEqualTo(mixed $expected): bool
+    {
+        return $this->value == $expected;
+    }
+
+
+    /**
+     * Strict data type validation check if not equals to expected value
+     *
      * @param mixed $value
      * @return bool
      */
     public function isNotEqualTo(mixed $value): bool
+    {
+        return ($this->value !== $value);
+    }
+
+    /**
+     * Flexible data type validation check if loosely not equals to expected value
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function isLooselyNotEqualTo(mixed $value): bool
     {
         return ($this->value !== $value);
     }
@@ -920,6 +1018,70 @@ class Inp implements InpInterface
         $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
         return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
     }
+
+    /**
+     * Strict data type validation check if value is a valid HTTP status code
+     *
+     * @return bool
+     */
+    public function isHttpStatusCode(): bool
+    {
+        $validCodes = [
+            100, 101, 102, 103,
+            200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
+            300, 301, 302, 303, 304, 305, 307, 308,
+            400, 401, 402, 403, 404, 405, 406, 407, 408, 409,
+            410, 411, 412, 413, 414, 415, 416, 417, 418, 421,
+            422, 423, 424, 425, 426, 428, 429, 431, 451,
+            500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511
+        ];
+        return in_array((int)$this->value, $validCodes, true);
+    }
+
+    /**
+     * Strict data type validation check if value is HTTP 200 OK
+     *
+     * @return bool
+     */
+    public function isHttp200(): bool
+    {
+        return (int)$this->value === 200;
+    }
+
+    /**
+     * Strict data type validation check if value is a 2xx success HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpSuccess(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 200 && $intVal < 300;
+    }
+
+
+    /**
+     * Strict data type validation check if value is a 4xx client error HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpClientError(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 400 && $intVal < 500;
+    }
+
+    /**
+     * Strict data type validation check if value is a 5xx server error HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpServerError(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 500 && $intVal < 600;
+    }
+
 
     /**
      * Validate multiple. Will return true if "one" matches

@@ -2,6 +2,8 @@
 
 MaplePHP - Validation is a lightweight and powerful PHP library designed to simplify the validation of various data inputs. Whether you're verifying if a value is a valid email or phone number, ensuring string lengths, or performing more advanced checks like credit card numbers and dates, MaplePHP - Validation offers a comprehensive and intuitive approach. With its wide range of built-in validators and simple syntax, it makes handling complex validation tasks easier, leading to cleaner and more reliable code.
 
+---
+
 ## Installation
 
 Install the library via Composer:
@@ -103,31 +105,47 @@ Inp::value("Lorem ipsum dolor")->length(1, 160);
 Inp::value("Lorem ipsum dolor")->isLengthEqualTo(10);
 ```
 
-### Check if value equals or not equals another value
-- **Equals**:
+### Check if value equals exactly to or not equals another value
+- **Equals**: Strict data type validation check if equals to expected value
 ```php
 Inp::value("Lorem ipsum dolor")->isEqualTo("Lorem ipsum dolor");
 ```
-- **Not equals**:
+
+- **Loosely Equals**: Flexible data type validation check if loosely equals to expected value
+```php
+Inp::value("Lorem ipsum dolor")->isLooselyEqualTo("Lorem ipsum dolor");
+```
+
+- **Not equals**: Strict data type validation check if not equals to expected value
 ```php
 Inp::value("Lorem ipsum dolor")->isNotEqualTo("Lorem ipsum");
 ```
+
+- **Loosely Not equals**: Flexible data type validation check if loosely not equals to expected value
+```php
+Inp::value("Lorem ipsum dolor")->isLooselyNotEqualTo("Lorem ipsum");
+```
+
 - **More than**:
 ```php
 Inp::value(200)->isMoreThan(100);
 ```
+
 - **Less than**:
 ```php
 Inp::value(100)->isLessThan(200);
 ```
+
 - **Contains**:
 ```php
 Inp::value("Lorem ipsum dolor")->contains("ipsum");
 ```
+
 - **Starts with**:
 ```php
 Inp::value("Lorem ipsum dolor")->startsWith("Lorem");
 ```
+
 - **Ends with**:
 ```php
 Inp::value("Lorem ipsum dolor")->endsWith("dolor");
@@ -314,6 +332,21 @@ Inp::value(["Apple", "Orange", "Lemon"])->isArray();
 Inp::value(["Apple", "Orange", "Lemon"])->isArrayEmpty();
 ```
 
+### Strict data type validation check if value exists in given array
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isInArray();
+```
+
+### Flexible data type validation check if value exists in given array
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->isLooselyInArray();
+```
+
+### Strict data type validation check if key exists in array
+```php
+Inp::value(["Apple", "Orange", "Lemon"])->keyExists();
+```
+
 ### Check if all items in array is truthy
 ```php
 Inp::value(["1", true, "Lemon"])->itemsAreTruthy();
@@ -323,8 +356,6 @@ Inp::value(["1", true, "Lemon"])->itemsAreTruthy();
 ```php
 Inp::value(["1", false, "Lemon"])->hasTruthyItem();
 ```
-
-
 
 ### Check if array count is equal to length
 ```php
@@ -340,7 +371,6 @@ Inp::value(["Apple", "Orange", "Lemon"])->isCountMoreThan(1);
 ```php
 Inp::value(["Apple", "Orange", "Lemon"])->isCountLessThan(4);
 ```
-
 
 ### Check if value is a valid float
 ```php
@@ -390,6 +420,34 @@ Inp::value($jsonStr)->isJson();
 - **HTML Document**:
 ```php
 Inp::value($jsonStr)->isFullHtml();
+```
+
+
+## HTTP status code validation
+
+#### Strict data type validation check if value is a valid HTTP status code
+```php
+Inp::value(403)->isHttpStatusCode();
+```
+
+#### Strict data type validation check if value is HTTP 200 OK
+```php
+Inp::value(200)->isHttp200();
+```
+
+#### Strict data type validation check if value is a 2xx success HTTP code
+```php
+Inp::value(210)->isHttpSuccess();
+```
+
+#### Strict data type validation check if value is a 4xx client error HTTP code
+```php
+Inp::value(403)->isHttpClientError();
+```
+
+#### Strict data type validation check if value is a 5xx server error HTTP code
+```php
+Inp::value(500)->isHttpServerError();
 ```
 
 
