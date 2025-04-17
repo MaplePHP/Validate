@@ -80,6 +80,8 @@ use ErrorException;
 class ValidatePool
 {
     private mixed $value;
+    private ?string $key = null;
+    private ?string $validationName = null;
     private array $error = [];
 
     private ?Inp $inp = null;
@@ -102,7 +104,7 @@ class ValidatePool
      */
     public function getValue(): mixed
     {
-        return !is_null($this->inp) ? $this->inp->getValue() : $this->value;
+        return $this->value;
     }
 
     /**
@@ -116,6 +118,18 @@ class ValidatePool
     public function __call(string $name, array $arguments): self
     {
         $this->validateWith($name, $arguments);
+        return $this;
+    }
+
+    public function mapErrorToKey(string $key): self
+    {
+        $this->key = $key;
+        return $this;
+    }
+
+    public function mapErrorValidationName(string $key): self
+    {
+        $this->validationName = $key;
         return $this;
     }
 
@@ -149,20 +163,43 @@ class ValidatePool
         if($invert) {
             $valid = !$valid;
         }
-        $this->error[$name] = !$valid;
+
+        $name = !is_null($this->validationName) ? $this->validationName : $name;
+        if(!is_null($this->key)) {
+            $this->error[$this->key][$name] = !$valid;
+        } else {
+            $this->error[][$name] = !$valid;
+        }
+
+        $this->validationName = $this->key = null;
         return $valid;
     }
 
     /**
      * Retrieves the errors recorded during the validation process.
      *
+     * NOTICE: Every error item that has true is true that it found an error!
+     *
      * @return array Returns an associative array of errors where the key is the method name
      *               and the value is the arguments passed to the method.
      */
     public function getError(): array
     {
+        $this->error = array_map('array_filter', $this->error);
         $this->error = array_filter($this->error);
         return $this->error;
+    }
+
+    public function getNormalizedError(): array
+    {
+        $new = [];
+        $error = $this->getError();
+        foreach($error as $keyA => $arr) {
+            foreach($arr as $keyB => $bool) {
+                $new[$keyA][$keyB] = !$bool;
+            }
+        }
+        return $new;
     }
 
     /**
