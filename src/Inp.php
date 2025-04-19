@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @Package:    MaplePHP - Input validation library
  * @Author:     Daniel Ronkainen
@@ -10,14 +9,17 @@
 namespace MaplePHP\Validate;
 
 use ErrorException;
-use Exception;
-use MaplePHP\DTO\MB;
+use MaplePHP\DTO\Traverse;
 use MaplePHP\Validate\Interfaces\InpInterface;
+use MaplePHP\Validate\Traits\InpAliases;
+use MaplePHP\DTO\MB;
 use MaplePHP\DTO\Format\Str;
+use MaplePHP\DTO\Format\Arr;
 use DateTime;
 
 class Inp implements InpInterface
 {
+    use InpAliases;
     public const WHITELIST_OPERATORS = [
         '!=',
         '<',
@@ -51,8 +53,18 @@ class Inp implements InpInterface
     {
         $this->value = $value;
         $this->dateTime = new DateTime("now");
-        if(is_string($value) || is_numeric($value)) {
-            $this->length = $this->getLength((string)$value);
+        $this->init();
+    }
+
+    /**
+     * Used to reset length in traverse with "mutable" flag
+     * @return void
+     * @throws ErrorException
+     */
+    private function init(): void
+    {
+        if(is_string($this->value) || is_numeric($this->value)) {
+            $this->length = $this->getLength((string)$this->value);
             $this->getStr = new Str($this->value);
         }
     }
@@ -81,6 +93,47 @@ class Inp implements InpInterface
     }
 
     /**
+     * Makes it possible to travers to a value in array or object
+     *
+     * @param string $key
+     * @param bool $immutable
+     * @return self
+     * @throws ErrorException
+     */
+    public function eq(string $key, bool $immutable = true): self
+    {
+        $value = $this->value;
+        if(is_array($this->value) || is_object($this->value)) {
+            $value = Traverse::value($this->value)->eq($key)->get();
+            if(!$immutable && $value !== false) {
+                $this->value = $value;
+                $this->init();
+                return $this;
+            }
+        }
+        return self::value($value);
+    }
+
+    /**
+     * This will make it possible to validate arrays and object with one line
+     *
+     * @example validateInData(user.name, 'length', [1, 200]);
+     * @param string $key
+     * @param string $validate
+     * @param array $args
+     * @return mixed
+     * @throws ErrorException
+     */
+    public function validateInData(string $key, string $validate, array $args = []): bool
+    {
+        $inp = $this->eq($key, false);
+        if(!method_exists($inp, $validate)) {
+            throw new \BadMethodCallException("Method '{$validate}' does not exist in " . __CLASS__ . " class.");
+        }
+        return $inp->{$validate}(...$args);
+    }
+
+    /**
      * Get value string length
      * @param string $value
      * @return int
@@ -90,6 +143,17 @@ class Inp implements InpInterface
     {
         $mb = new MB($value);
         return (int)$mb->strlen();
+    }
+
+    /**
+     * Get the current value
+     * _The value can be changes with travers method and this lets you peak at the new one_
+     *
+     * @return mixed
+     */
+    public function getValue(): mixed
+    {
+        return $this->value;
     }
 
     /**
@@ -108,12 +172,85 @@ class Inp implements InpInterface
      * Will check if value if empty (e.g. "", 0, NULL) = false
      * @return bool
      */
-    public function required(): bool
+    public function isRequired(): bool
     {
         if ($this->length(1) && !empty($this->value)) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Strict data type validation check if is false
+     *
+     * @return bool
+     */
+    public function isTrue(): bool
+    {
+        return $this->value === true;
+    }
+
+    /**
+     * Flexible data type validation check if is truthy
+     *
+     * @return bool
+     */
+    public function isisTruthy(): bool
+    {
+        return filter_var($this->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+    }
+
+    /**
+     * Strict data type validation check if is false
+     *
+     * @return bool
+     */
+    public function isFalse(): bool
+    {
+        return $this->value === false;
+    }
+
+    /**
+     * Flexible data type validation check if is falsy
+     *
+     * @return bool
+     */
+    public function isFalsy(): bool
+    {
+        return filter_var($this->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === false;
+    }
+
+    /**
+     * Strict data type validation check if value exists in given array
+     *
+     * @param array $haystack
+     * @return bool
+     */
+    public function isInArray(array $haystack): bool
+    {
+        return in_array($this->value, $haystack, true);
+    }
+
+    /**
+     * Flexible data type validation check if value exists in given array
+     *
+     * @param array $haystack
+     * @return bool
+     */
+    public function isLooselyInArray(array $haystack): bool
+    {
+        return in_array($this->value, $haystack);
+    }
+
+    /**
+     * Strict data type validation check if key exists in array
+     *
+     * @param string|int $key
+     * @return bool
+     */
+    public function keyExists(string|int $key): bool
+    {
+        return is_array($this->value) && array_key_exists($key, $this->value);
     }
 
     /**
@@ -126,28 +263,19 @@ class Inp implements InpInterface
     }
 
     /**
-     * Validate Swedish personal numbers
+     * Validate Swedish personal numbers (personalNumber)
      * @return bool
      */
-    public function socialNumber(): bool
+    public function isSocialNumber(): bool
     {
         return $this->luhn()->personnummer();
-    }
-
-    /**
-     * Validate Swedish personal numbers
-     * @return bool
-     */
-    public function personalNumber(): bool
-    {
-        return $this->socialNumber();
     }
 
     /**
      * Validate Swedish org numbers
      * @return bool
      */
-    public function orgNumber(): bool
+    public function isOrgNumber(): bool
     {
         return $this->luhn()->orgNumber();
     }
@@ -156,16 +284,16 @@ class Inp implements InpInterface
      * Validate credit card numbers (THIS needs to be tested)
      * @return bool
      */
-    public function creditCard(): bool
+    public function isCreditCard(): bool
     {
-        return $this->luhn()->creditcard();
+        return $this->luhn()->creditCard();
     }
 
     /**
      * Validate Swedish vat number
      * @return bool
      */
-    public function vatNumber(): bool
+    public function isVatNumber(): bool
     {
         return $this->luhn()->vatNumber();
     }
@@ -176,7 +304,7 @@ class Inp implements InpInterface
      * manually with the method @dns but in most cases this will not be necessary.
      * @return bool
      */
-    public function email(): bool
+    public function isEmail(): bool
     {
         return (filter_var($this->value, FILTER_VALIDATE_EMAIL) !== false);
     }
@@ -197,7 +325,7 @@ class Inp implements InpInterface
      * Check if is a phone number
      * @return bool
      */
-    public function phone(): bool
+    public function isPhone(): bool
     {
         if (is_null($this->getStr)) {
             return false;
@@ -210,19 +338,19 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid ZIP
-     * @param int $arg1 start length
-     * @param int|null $arg2 end length
+     * @param int $minLength start length
+     * @param int|null $maxLength end length
      * @return bool
      * @throws ErrorException
      */
-    public function zip(int $arg1, ?int $arg2 = null): bool
+    public function isZip(int $minLength, ?int $maxLength = null): bool
     {
         if (is_null($this->getStr)) {
             return false;
         }
         $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""]);
         $this->length = $this->getLength($this->value);
-        return ($this->isInt() && $this->length($arg1, $arg2));
+        return ($this->isInt() && $this->length($minLength, $maxLength));
     }
 
     /**
@@ -392,26 +520,16 @@ class Inp implements InpInterface
      * Value is number
      * @return bool
      */
-    public function number(): bool
+    public function isNumber(): bool
     {
         return (is_numeric($this->value));
-    }
-
-    public function numeric(): bool
-    {
-        return $this->number();
-    }
-
-    public function numericVal(): bool
-    {
-        return $this->number();
     }
 
     /**
      * Value is number positive 20
      * @return bool
      */
-    public function positive(): bool
+    public function isPositive(): bool
     {
         return ((float)$this->value >= 0);
     }
@@ -420,7 +538,7 @@ class Inp implements InpInterface
      * Value is number negative -20
      * @return bool
      */
-    public function negative(): bool
+    public function isNegative(): bool
     {
         return ((float)$this->value < 0);
     }
@@ -470,46 +588,168 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value string length is equal to ($arg1)
-     * @param  int  $arg1  length
+     * Check if array is empty
+     *
      * @return bool
      */
-    public function equalLength(int $arg1): bool
+    public function isArrayEmpty(): bool
     {
-        if ($this->length === $arg1) {
+        return ($this->isArray() && count($this->value) === 0);
+    }
+
+    /**
+     * Check if all items in array is truthy
+     *
+     * @param string|int|float $key
+     * @return bool
+     */
+    public function itemsAreTruthy(string|int|float $key): bool
+    {
+        if($this->isArray()) {
+            $count = Arr::value($this->value)
+                ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
+                ->count();
+            return ($count === count($this->value));
+        }
+        return false;
+    }
+
+    /**
+     * Check if truthy item exist in array
+     *
+     * @param string|int|float $key
+     * @return bool
+     */
+    public function hasTruthyItem(string|int|float $key): bool
+    {
+        if($this->isArray()) {
+            $count = Arr::value($this->value)
+                ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
+                ->count();
+            return ($count > 0);
+        }
+        return false;
+    }
+
+    /**
+     * Validate array length equal to
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountEqualTo(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) === $length);
+    }
+
+    /**
+     * Validate array length is more than
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountMoreThan(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) > $length);
+    }
+
+    /**
+     * Validate array length is less than
+     *
+     * @param int $length
+     * @return bool
+     */
+    public function isCountLessThan(int $length): bool
+    {
+        return ($this->isArray() && count($this->value) < $length);
+    }
+
+    /**
+     * Check int value is equal to int value
+     * @param int $value
+     * @return bool
+     */
+    public function toIntEqual(int $value): bool
+    {
+        return (int)$this->value === $value;
+    }
+
+    /**
+     * Value string length is equal to ($length)
+     * @param  int  $length
+     * @return bool
+     */
+    public function isLengthEqualTo(int $length): bool
+    {
+        if ($this->length === $length) {
             return true;
         }
         return false;
     }
 
     /**
-     * IF value equals to param
-     * @param $str
+     * Strict data type validation check if equals to expected value
+     *
+     * @param mixed $expected
      * @return bool
      */
-    public function equal($str): bool
+    public function isEqualTo(mixed $expected): bool
     {
-        return ($this->value === $str);
+        return $this->value === $expected;
+    }
+
+    /**
+     * Flexible data type validation check if loosely equals to expected value
+     *
+     * @param mixed $expected
+     * @return bool
+     */
+    public function isLooselyEqualTo(mixed $expected): bool
+    {
+        return $this->value == $expected;
+    }
+
+
+    /**
+     * Strict data type validation check if not equals to expected value
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function isNotEqualTo(mixed $value): bool
+    {
+        return ($this->value !== $value);
+    }
+
+    /**
+     * Flexible data type validation check if loosely not equals to expected value
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function isLooselyNotEqualTo(mixed $value): bool
+    {
+        return ($this->value !== $value);
     }
 
     /**
      * IF value is less than to parameter
-     * @param $num
+     * @param float|int $num
      * @return bool
      */
-    public function lessThan($num): bool
+    public function isLessThan(float|int $num): bool
     {
-        return ($this->value < (float)$num);
+        return ($this->value < $num);
     }
 
     /**
      * IF value is more than to parameter
-     * @param $num
+     * @param float|int $num
      * @return bool
      */
-    public function moreThan($num): bool
+    public function isMoreThan(float|int $num): bool
     {
-        return ($this->value > (float)$num);
+        return ($this->value > $num);
     }
 
     /**
@@ -546,21 +786,11 @@ class Inp implements InpInterface
     }
 
     /**
-     * IF value equals to param
-     * @param $str
-     * @return bool
-     */
-    public function notEqual($str): bool
-    {
-        return ($this->value !== $str);
-    }
-
-    /**
      * Check is a valid version number
      * @param bool $strict (validate as a semantic Versioning, e.g. 1.0.0)
      * @return bool
      */
-    public function validVersion(bool $strict = false): bool
+    public function isValidVersion(bool $strict = false): bool
     {
         $strictMatch = (!$strict || preg_match("/^(\d?\d)\.(\d?\d)\.(\d?\d)$/", (string)$this->value));
         $compare = version_compare((string)$this->value, '0.0.1', '>=');
@@ -570,7 +800,7 @@ class Inp implements InpInterface
     /**
      * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
      * @param string $withVersion
-     * @param '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne' $operator
+     * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
      * @return bool
      */
     public function versionCompare(string $withVersion, string $operator = "=="): bool
@@ -588,7 +818,7 @@ class Inp implements InpInterface
      * @param integer $length Minimum length
      * @return bool
      */
-    public function lossyPassword(int $length = 1): bool
+    public function isLossyPassword(int $length = 1): bool
     {
         return ((int)preg_match('/^[a-zA-Z\d$@$!%*?&]{' . $length . ',}$/', $this->value) > 0);
     }
@@ -605,7 +835,7 @@ class Inp implements InpInterface
      * @param integer $length Minimum length
      * @return bool
      */
-    public function strictPassword(int $length = 1): bool
+    public function isStrictPassword(int $length = 1): bool
     {
         $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{' . $length . ',}$/';
         return ((int)preg_match($pattern, $this->value) > 0);
@@ -620,7 +850,6 @@ class Inp implements InpInterface
     {
         return ((int)preg_match("/^[" . $matchStr . "]+$/", $this->value) > 0);
     }
-
 
     /**
      * Is value is string and character between a-z or A-Z
@@ -653,7 +882,7 @@ class Inp implements InpInterface
      * Is Hex color code string
      * @return bool
      */
-    public function hex(): bool
+    public function isHex(): bool
     {
         return ((int)preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) > 0);
     }
@@ -663,30 +892,28 @@ class Inp implements InpInterface
      * @param string $format validate after this date format (default Y-m-d)
      * @return bool
      */
-    public function date(string $format = "Y-m-d"): bool
+    public function isDate(string $format = "Y-m-d"): bool
     {
         return (DateTime::createFromFormat($format, $this->value) !== false);
     }
 
-
     /**
      * Check if is a date and time
-     * @param string $format  validate after this date format (default Y-m-d H:i)
      * @return bool
      */
-    public function dateTime(string $format = "Y-m-d H:i"): bool
+    public function isDateWithTime(): bool
     {
-        return $this->date($format);
+        return $this->date("Y-m-d H:i:s");
     }
 
     /**
      * Check if is a date and time
-     * @param string $format  validate after this date format (default Y-m-d H:i)
+     * @param bool $withSeconds
      * @return bool
      */
-    public function time(string $format = "H:i"): bool
+    public function isTime(bool $withSeconds = false): bool
     {
-        return $this->date($format);
+        return $this->date("H:i" . ($withSeconds ? ":s" : ""));
     }
 
     /**
@@ -710,17 +937,17 @@ class Inp implements InpInterface
 
     /**
      * Check "minimum" age (value format should be validated date "Y-m-d")
-     * @param int $arg1  18: user should be 18 or older
+     * @param int $checkAge
      * @return bool
-     * @throws Exception
+     * @throws \DateMalformedStringException
      */
-    public function age(int $arg1): bool
+    public function isAge(int $checkAge): bool
     {
         $now = (int)$this->dateTime->format("Y");
         $dateTime = new DateTime($this->value);
         $birth = (int)$dateTime->format("Y");
         $age = ($now - $birth);
-        return ($age >= $arg1);
+        return ($age >= $checkAge);
     }
 
     /**
@@ -728,7 +955,7 @@ class Inp implements InpInterface
      * @param  bool $strict stricter = true
      * @return bool
      */
-    public function domain(bool $strict = true): bool
+    public function isDomain(bool $strict = true): bool
     {
         $strict = ($strict) ? FILTER_FLAG_HOSTNAME : 0;
         return (filter_var((string)$this->value, FILTER_VALIDATE_DOMAIN, $strict) !== false);
@@ -738,7 +965,7 @@ class Inp implements InpInterface
      * Check if is valid URL (http|https is required)
      * @return bool
      */
-    public function url(): bool
+    public function isUrl(): bool
     {
         return (filter_var($this->value, FILTER_VALIDATE_URL) !== false);
     }
@@ -749,7 +976,7 @@ class Inp implements InpInterface
      * @noinspection PhpComposerExtensionStubsInspection
      * @return bool
      */
-    public function dns(): bool
+    public function isDns(): bool
     {
         $AResult = true;
         $host = $this->getHost($this->value);
@@ -793,6 +1020,70 @@ class Inp implements InpInterface
     }
 
     /**
+     * Strict data type validation check if value is a valid HTTP status code
+     *
+     * @return bool
+     */
+    public function isHttpStatusCode(): bool
+    {
+        $validCodes = [
+            100, 101, 102, 103,
+            200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
+            300, 301, 302, 303, 304, 305, 307, 308,
+            400, 401, 402, 403, 404, 405, 406, 407, 408, 409,
+            410, 411, 412, 413, 414, 415, 416, 417, 418, 421,
+            422, 423, 424, 425, 426, 428, 429, 431, 451,
+            500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511
+        ];
+        return in_array((int)$this->value, $validCodes, true);
+    }
+
+    /**
+     * Strict data type validation check if value is HTTP 200 OK
+     *
+     * @return bool
+     */
+    public function isHttp200(): bool
+    {
+        return (int)$this->value === 200;
+    }
+
+    /**
+     * Strict data type validation check if value is a 2xx success HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpSuccess(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 200 && $intVal < 300;
+    }
+
+
+    /**
+     * Strict data type validation check if value is a 4xx client error HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpClientError(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 400 && $intVal < 500;
+    }
+
+    /**
+     * Strict data type validation check if value is a 5xx server error HTTP code
+     *
+     * @return bool
+     */
+    public function isHttpServerError(): bool
+    {
+        $intVal = (int)$this->value;
+        return $intVal >= 500 && $intVal < 600;
+    }
+
+
+    /**
      * Validate multiple. Will return true if "one" matches
      * @param array $arr
      * @return bool
@@ -826,4 +1117,5 @@ class Inp implements InpInterface
         }
         return true;
     }
+
 }
