@@ -41,6 +41,7 @@ class Inp implements InpInterface
     private int $length = 0;
     private DateTime $dateTime;
     private ?Luhn $luhn = null;
+    private ?DNS $dns = null;
     private ?Str $getStr = null;
 
 
@@ -169,6 +170,19 @@ class Inp implements InpInterface
     }
 
     /**
+     * Access DNS validations
+     *
+     * @return DNS
+     */
+    public function dns(): DNS
+    {
+        if(is_null($this->dns)) {
+            $this->dns = new DNS($this->value);
+        }
+        return $this->dns;
+    }
+
+    /**
      * Will check if value if empty (e.g. "", 0, NULL) = false
      * @return bool
      */
@@ -195,7 +209,7 @@ class Inp implements InpInterface
      *
      * @return bool
      */
-    public function isisTruthy(): bool
+    public function isTruthy(): bool
     {
         return filter_var($this->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
     }
@@ -254,7 +268,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Will only check if there is a value (e.g. 0) = true
+     * Will only check if there is a value
      * @return bool
      */
     public function hasValue(): bool
@@ -302,6 +316,7 @@ class Inp implements InpInterface
      * Validate email
      * Loosely check if is email. By loosely I mean it will not check if valid DNS. You can check this
      * manually with the method @dns but in most cases this will not be necessary.
+     *
      * @return bool
      */
     public function isEmail(): bool
@@ -309,8 +324,55 @@ class Inp implements InpInterface
         return (filter_var($this->value, FILTER_VALIDATE_EMAIL) !== false);
     }
 
+
+    /**
+     * Validate if the email is deliverable
+     * This checks if the email is syntactically valid and has a valid MX record.
+     *
+     * @return bool
+     */
+    public function isDeliverableEmail(): bool
+    {
+        return ($this->isEmail() && $this->dns()->isMxRecord());
+    }
+
+
+    /**
+     * Checks if a string contains a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function contains(string $needle): bool
+    {
+        return str_contains($this->value, $needle);
+    }
+
+    /**
+     * Checks if a string starts with a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function startsWith(string $needle): bool
+    {
+        return str_starts_with($this->value, $needle);
+    }
+
+    /**
+     * Checks if a string ends with a given substring
+     *
+     * @param string $needle
+     * @return bool
+     */
+    public function endsWith(string $needle): bool
+    {
+        return str_ends_with($this->value, $needle);
+    }
+
     /**
      * Find in string
+     *
      * @param  string   $match keyword to match against
      * @param  int|null $pos   match start position if you want
      * @return bool
@@ -338,6 +400,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid ZIP
+     *
      * @param int $minLength start length
      * @param int|null $maxLength end length
      * @return bool
@@ -383,15 +446,6 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value string
-     * @return bool
-     */
-    public function isStr(): bool
-    {
-        return $this->isString();
-    }
-
-    /**
      * Is value array
      * @return bool
      */
@@ -416,6 +470,15 @@ class Inp implements InpInterface
     public function isBool(): bool
     {
         return (is_bool($this->value));
+    }
+
+    /**
+     * Is resource
+     * @return bool
+     */
+    public function isResource(): bool
+    {
+        return is_resource($this->value);
     }
 
     /**
@@ -448,7 +511,6 @@ class Inp implements InpInterface
         return $htmlTag && $headTag && $bodyTag;
     }
 
-
     /**
      * Check if the value itself can be Interpreted as a bool value
      * E.g. If value === ([on, off], [yes, no], [1, 0] or [true, false])
@@ -472,15 +534,6 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is file
-     * @return bool
-     */
-    public function isFile(): bool
-    {
-        return is_file($this->value);
-    }
-
-    /**
      * Is directory
      * @return bool
      */
@@ -490,12 +543,21 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is resource
+     * Is file
      * @return bool
      */
-    public function isResource(): bool
+    public function isFile(): bool
     {
-        return is_resource($this->value);
+        return is_file($this->value);
+    }
+
+    /**
+     * Check if is file or directory
+     * @return bool
+     */
+    function isFileOrDirectory(): bool
+    {
+        return file_exists($this->value);
     }
 
     /**
@@ -517,16 +579,28 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value is number
+     * Value is strictly a number (int or float).
+     *
      * @return bool
      */
     public function isNumber(): bool
     {
-        return (is_numeric($this->value));
+        return $this->isFloat() || $this->isInt();
+    }
+
+    /**
+     * Value is loosely numeric (e.g. numeric strings, scientific notation).
+     *
+     * @return bool
+     */
+    public function isNumbery(): bool
+    {
+        return is_numeric($this->value);
     }
 
     /**
      * Value is number positive 20
+     *
      * @return bool
      */
     public function isPositive(): bool
@@ -536,6 +610,7 @@ class Inp implements InpInterface
 
     /**
      * Value is number negative -20
+     *
      * @return bool
      */
     public function isNegative(): bool
@@ -545,6 +620,7 @@ class Inp implements InpInterface
 
     /**
      * Value is minimum float|int value
+     *
      * @param float $int
      * @return bool
      */
@@ -554,17 +630,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value is minimum float|int value (Same as "@min()" but can be used to add another error message)
-     * @param float $int
-     * @return bool
-     */
-    public function minAlt(float $int): bool
-    {
-        return $this->min($int);
-    }
-
-    /**
      * Value is maximum float|int value
+     *
      * @param float $int
      * @return bool
      */
@@ -574,14 +641,15 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value string length is more than start ($arg1) or between start ($arg1) and end ($arg2)
-     * @param  int      $arg1 start length
-     * @param  int|null $arg2 end length
+     * Check if string length is more than start ($min), or between ($min) and ($max)
+     *
+     * @param  int      $min start length
+     * @param  int|null $max end length
      * @return bool
      */
-    public function length(int $arg1, ?int $arg2 = null): bool
+    public function length(int $min, ?int $max = null): bool
     {
-        if ($this->length >= $arg1 && (($arg2 === null) || $this->length <= $arg2)) {
+        if ($this->length >= $min && (($max === null) || $this->length <= $max)) {
             return true;
         }
         return false;
@@ -753,39 +821,6 @@ class Inp implements InpInterface
     }
 
     /**
-     * Checks if a string contains a given substring
-     *
-     * @param string $needle
-     * @return bool
-     */
-    public function contains(string $needle): bool
-    {
-        return str_contains($this->value, $needle);
-    }
-
-    /**
-     * Checks if a string starts with a given substring
-     *
-     * @param string $needle
-     * @return bool
-     */
-    public function startsWith(string $needle): bool
-    {
-        return str_starts_with($this->value, $needle);
-    }
-
-    /**
-     * Checks if a string ends with a given substring
-     *
-     * @param string $needle
-     * @return bool
-     */
-    public function endsWith(string $needle): bool
-    {
-        return str_ends_with($this->value, $needle);
-    }
-
-    /**
      * Check is a valid version number
      * @param bool $strict (validate as a semantic Versioning, e.g. 1.0.0)
      * @return bool
@@ -842,40 +877,44 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value is string and character between a-z or A-Z
-     * @param $matchStr
+     * Check if the value contains only characters matching the given pattern.
+     *
+     * @param string $charRange A character range (e.g., 'a-z', 'A-Z0-9')
      * @return bool
      */
-    public function pregMatch($matchStr): bool
+    public function isMatchingPattern(string $charRange): bool
     {
-        return ((int)preg_match("/^[" . $matchStr . "]+$/", $this->value) > 0);
+        return (bool)preg_match("/^[$charRange]+$/", $this->value);
     }
 
     /**
-     * Is value is string and character between a-z or A-Z
+     * Check if the value contains only alphabetic characters (a–z or A–Z).
+     *
      * @return bool
      */
-    public function atoZ(): bool
+    public function isAlpha(): bool
     {
-        return ((int)preg_match("/^[a-zA-Z]+$/", $this->value) > 0);
+        return (bool)preg_match("/^[a-zA-Z]+$/", $this->value);
     }
 
     /**
-     * Is value is string and character between a-z (LOWERCASE)
+     * Check if the value contains only lowercase letters (a–z).
+     *
      * @return bool
      */
-    public function lowerAtoZ(): bool
+    public function isLowerAlpha(): bool
     {
-        return ((int)preg_match("/^[a-z]+$/", $this->value) > 0);
+        return (bool)preg_match("/^[a-z]+$/", $this->value);
     }
 
     /**
-     * Is value is string and character between A-Z (UPPERCASE)
+     * Check if the value contains only uppercase letters (A–Z).
+     *
      * @return bool
      */
-    public function upperAtoZ(): bool
+    public function isUpperAlpha(): bool
     {
-        return ((int)preg_match("/^[A-Z]+$/", $this->value) > 0);
+        return (bool)preg_match("/^[A-Z]+$/", $this->value);
     }
 
     /**
@@ -914,25 +953,6 @@ class Inp implements InpInterface
     public function isTime(bool $withSeconds = false): bool
     {
         return $this->date("H:i" . ($withSeconds ? ":s" : ""));
-    }
-
-    /**
-     * Check if is a date and a "valid range"
-     * @param string $format validate after this date format (default Y-m-d H:i)
-     * @return array|false E.g. array(T1, T2); T1 = start and T2 = end
-     */
-    public function dateRange(string $format = "Y-m-d H:i"): array|false
-    {
-        $exp = explode(" - ", $this->value);
-        if (count($exp) === 2) {
-            $time1 = trim($exp[0]);
-            $time2 = trim($exp[1]);
-            $val1 = DateTime::createFromFormat($format, $time1);
-            $val2 = DateTime::createFromFormat($format, $time2);
-            return (($val1 && $val2 && ($val1->getTimestamp() <= $val2->getTimestamp())) ?
-                ["t1" => $time1, "t2" => $time2] : false);
-        }
-        return false;
     }
 
     /**
@@ -976,47 +996,9 @@ class Inp implements InpInterface
      * @noinspection PhpComposerExtensionStubsInspection
      * @return bool
      */
-    public function isDns(): bool
+    public function isResolvableHost(): bool
     {
-        $AResult = true;
-        $host = $this->getHost($this->value);
-        $MXResult = checkdnsrr($host); // Argument 2 is MX by default
-        if (!$MXResult) {
-            $AResult = checkdnsrr($host, 'A') || checkdnsrr($host, 'AAAA');
-        }
-        return ($MXResult || $AResult);
-    }
-
-    /**
-     * Match DNS record by search for TYPE and matching VALUE
-     * @param  int $type   (DNS_A, DNS_CNAME, DNS_HINFO, DNS_CAA, DNS_MX, DNS_NS, DNS_PTR, DNS_SOA,
-     * DNS_TXT, DNS_AAAA, DNS_SRV, DNS_NAPTR, DNS_A6, DNS_ALL or DNS_ANY)
-     * @noinspection PhpComposerExtensionStubsInspection
-     * @return array|false
-     */
-    public function matchDNS(int $type): array|false
-    {
-        $host = $this->getHost($this->value);
-        $result = dns_get_record($host, $type);
-        if (is_array($result) && count($result) > 0) {
-            return $result;
-        }
-        return false;
-    }
-
-    /**
-     * Get hosts (used for DNS checks)
-     * @noinspection PhpComposerExtensionStubsInspection
-     * @param string $host
-     * @return string
-     */
-    private function getHost(string $host): string
-    {
-        if (!defined('INTL_IDNA_VARIANT_2003')) {
-            define('INTL_IDNA_VARIANT_2003', 0);
-        }
-        $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
-        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
+        return $this->dns()->isResolvableHost();
     }
 
     /**
@@ -1118,4 +1100,22 @@ class Inp implements InpInterface
         return true;
     }
 
+    /**
+     * Check if is a date and a "valid range"
+     * @param string $format validate after this date format (default Y-m-d H:i)
+     * @return array|false E.g. array(T1, T2); T1 = start and T2 = end
+     */
+    public function dateRange(string $format = "Y-m-d H:i"): array|false
+    {
+        $exp = explode(" - ", $this->value);
+        if (count($exp) === 2) {
+            $time1 = trim($exp[0]);
+            $time2 = trim($exp[1]);
+            $val1 = DateTime::createFromFormat($format, $time1);
+            $val2 = DateTime::createFromFormat($format, $time2);
+            return (($val1 && $val2 && ($val1->getTimestamp() <= $val2->getTimestamp())) ?
+                ["t1" => $time1, "t2" => $time2] : false);
+        }
+        return false;
+    }
 }

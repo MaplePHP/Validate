@@ -10,9 +10,9 @@ namespace MaplePHP\Validate\Traits;
 
 trait InpAliases {
 
-    public function dns(): bool
+    public function isDns(): bool
     {
-        return $this->isDns();
+        return $this->isResolvableHost();
     }
 
     public function url(): bool
@@ -148,5 +148,40 @@ trait InpAliases {
     public function required(): bool
     {
         return $this->isRequired();
+    }
+
+    public function isStr(): bool
+    {
+        return $this->isString();
+    }
+
+    public function minimum(float $int): bool
+    {
+        return $this->min($int);
+    }
+
+    public function maximum(float $int): bool
+    {
+        return $this->max($int);
+    }
+
+    public function pregMatch(string $match): bool
+    {
+        return $this->isMatchingPattern($match);
+    }
+
+    public function atoZ(): bool
+    {
+        return $this->isAlpha();
+    }
+
+    public function lowerAtoZ(): bool
+    {
+        return $this->isLowerAlpha();
+    }
+
+    public function upperAtoZ(): bool
+    {
+        return $this->isUpperAlpha();
     }
 }
