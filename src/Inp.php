@@ -3,12 +3,15 @@
  * @Package:    MaplePHP - Input validation library
  * @Author:     Daniel Ronkainen
  * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
-                Don't delete this comment, its part of the license.
+                Don't delete this comment, it's part of the license.
  */
 
 namespace MaplePHP\Validate;
 
+use BadMethodCallException;
+use DOMDocument;
 use ErrorException;
+use Exception;
 use MaplePHP\DTO\Traverse;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\Validate\Traits\InpAliases;
@@ -47,6 +50,7 @@ class Inp implements InpInterface
 
     /**
      * Start instance
+     *
      * @param mixed $value the input value
      * @throws ErrorException
      */
@@ -58,7 +62,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Used to reset length in traverse with "mutable" flag
+     * Used to reset length in traverse with the "mutable" flag
+     *
      * @return void
      * @throws ErrorException
      */
@@ -72,6 +77,7 @@ class Inp implements InpInterface
 
     /**
      * Immutable: Validate against new value
+     *
      * @param mixed $value
      * @return InpInterface
      */
@@ -84,6 +90,7 @@ class Inp implements InpInterface
 
     /**
      * Start instance
+     *
      * @param string $value the input value
      * @return self
      * @throws ErrorException
@@ -94,7 +101,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Makes it possible to travers to a value in array or object
+     * Makes it possible to traverse to a value in array or object
      *
      * @param string $key
      * @param bool $immutable
@@ -119,6 +126,7 @@ class Inp implements InpInterface
      * This will make it possible to validate arrays and object with one line
      *
      * @example validateInData(user.name, 'length', [1, 200]);
+     *
      * @param string $key
      * @param string $validate
      * @param array $args
@@ -129,13 +137,14 @@ class Inp implements InpInterface
     {
         $inp = $this->eq($key, false);
         if(!method_exists($inp, $validate)) {
-            throw new \BadMethodCallException("Method '{$validate}' does not exist in " . __CLASS__ . " class.");
+            throw new BadMethodCallException("Method '$validate' does not exist in " . __CLASS__ . " class.");
         }
         return $inp->{$validate}(...$args);
     }
 
     /**
      * Get value string length
+     *
      * @param string $value
      * @return int
      * @throws ErrorException
@@ -159,6 +168,7 @@ class Inp implements InpInterface
 
     /**
      * Access luhn validation class
+     *
      * @return Luhn
      */
     public function luhn(): Luhn
@@ -177,13 +187,19 @@ class Inp implements InpInterface
     public function dns(): DNS
     {
         if(is_null($this->dns)) {
-            $this->dns = new DNS($this->value);
+            $value = $this->value;
+            $position = Traverse::value($this->value)->strPosition("@")->toInt();
+            if($position > 0) {
+                $value = Traverse::value($this->value)->strSubstr($position + 1)->toString();
+            }
+            $this->dns = new DNS($value);
         }
         return $this->dns;
     }
 
     /**
-     * Will check if value if empty (e.g. "", 0, NULL) = false
+     * Will check if the value is empty (e.g. "", 0, NULL) = false
+     *
      * @return bool
      */
     public function isRequired(): bool
@@ -235,7 +251,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if value exists in given array
+     * Strict data type validation check if a value exists in a given array
      *
      * @param array $haystack
      * @return bool
@@ -246,7 +262,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Flexible data type validation check if value exists in given array
+     * Flexible data type validation check if a value exists in a given array
      *
      * @param array $haystack
      * @return bool
@@ -257,18 +273,19 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if key exists in array
+     * Strict data type validation check if the key exists in an array
      *
-     * @param string|int $key
+     * @param string|int|float $key
      * @return bool
      */
-    public function keyExists(string|int $key): bool
+    public function keyExists(string|int|float $key): bool
     {
         return is_array($this->value) && array_key_exists($key, $this->value);
     }
 
     /**
      * Will only check if there is a value
+     *
      * @return bool
      */
     public function hasValue(): bool
@@ -278,6 +295,7 @@ class Inp implements InpInterface
 
     /**
      * Validate Swedish personal numbers (personalNumber)
+     *
      * @return bool
      */
     public function isSocialNumber(): bool
@@ -287,6 +305,7 @@ class Inp implements InpInterface
 
     /**
      * Validate Swedish org numbers
+     *
      * @return bool
      */
     public function isOrgNumber(): bool
@@ -296,6 +315,7 @@ class Inp implements InpInterface
 
     /**
      * Validate credit card numbers (THIS needs to be tested)
+     *
      * @return bool
      */
     public function isCreditCard(): bool
@@ -305,6 +325,7 @@ class Inp implements InpInterface
 
     /**
      * Validate Swedish vat number
+     *
      * @return bool
      */
     public function isVatNumber(): bool
@@ -314,7 +335,7 @@ class Inp implements InpInterface
 
     /**
      * Validate email
-     * Loosely check if is email. By loosely I mean it will not check if valid DNS. You can check this
+     * Loosely checks if is email. By loosely I mean it will not check if valid DNS. You can check this
      * manually with the method @dns but in most cases this will not be necessary.
      *
      * @return bool
@@ -374,7 +395,7 @@ class Inp implements InpInterface
      * Find in string
      *
      * @param  string   $match keyword to match against
-     * @param  int|null $pos   match start position if you want
+     * @param  int|null $pos   match the start position if you want
      * @return bool
      */
     public function findInString(string $match, ?int $pos = null): bool
@@ -384,7 +405,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if is a phone number
+     * Checks if is a phone number
+     *
      * @return bool
      */
     public function isPhone(): bool
@@ -417,8 +439,9 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value float
+     * If value float
      * Will validate whether a string is a valid float (User input is always a string)
+     *
      * @return bool
      */
     public function isFloat(): bool
@@ -427,8 +450,9 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is value int
+     * Is the value an int value
      * Will validate whether a string is a valid integer (User input is always a string)
+     *
      * @return bool
      */
     public function isInt(): bool
@@ -438,6 +462,7 @@ class Inp implements InpInterface
 
     /**
      * Is value string
+     *
      * @return bool
      */
     public function isString(): bool
@@ -447,6 +472,7 @@ class Inp implements InpInterface
 
     /**
      * Is value array
+     *
      * @return bool
      */
     public function isArray(): bool
@@ -456,6 +482,7 @@ class Inp implements InpInterface
 
     /**
      * Is value object
+     *
      * @return bool
      */
     public function isObject(): bool
@@ -465,6 +492,7 @@ class Inp implements InpInterface
 
     /**
      * Is value bool
+     *
      * @return bool
      */
     public function isBool(): bool
@@ -473,7 +501,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is resource
+     * Is the value a resource value?
+     *
      * @return bool
      */
     public function isResource(): bool
@@ -483,6 +512,7 @@ class Inp implements InpInterface
 
     /**
      * Is a valid json string
+     *
      * @return bool
      */
     public function isJson(): bool
@@ -492,13 +522,14 @@ class Inp implements InpInterface
     }
 
     /**
-     * Validate a string as html, check that it contains doctype, html, head and body
+     * Validate a string as HTML, check that it contains doctype, HTML, head, and body
+     *
      * @return bool
      */
     public function isFullHtml(): bool
     {
         libxml_use_internal_errors(true);
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         if (!is_string($this->value) || !$dom->loadHTML($this->value, LIBXML_NOERROR | LIBXML_NOWARNING)) {
             return false; // Invalid HTML syntax
         }
@@ -513,7 +544,8 @@ class Inp implements InpInterface
 
     /**
      * Check if the value itself can be Interpreted as a bool value
-     * E.g. If value === ([on, off], [yes, no], [1, 0] or [true, false])
+     * E.g., If value === ([on, off], [yes, no], [1, 0] or [true, false])
+     *
      * @return bool
      */
     public function isBoolVal(): bool
@@ -526,6 +558,7 @@ class Inp implements InpInterface
 
     /**
      * Is null
+     *
      * @return bool
      */
     public function isNull(): bool
@@ -535,6 +568,7 @@ class Inp implements InpInterface
 
     /**
      * Is directory
+     *
      * @return bool
      */
     public function isDir(): bool
@@ -544,6 +578,7 @@ class Inp implements InpInterface
 
     /**
      * Is file
+     *
      * @return bool
      */
     public function isFile(): bool
@@ -553,6 +588,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is file or directory
+     *
      * @return bool
      */
     function isFileOrDirectory(): bool
@@ -562,6 +598,7 @@ class Inp implements InpInterface
 
     /**
      * Is writable
+     *
      * @return bool
      */
     public function isWritable(): bool
@@ -571,6 +608,7 @@ class Inp implements InpInterface
 
     /**
      * Is readable
+     *
      * @return bool
      */
     public function isReadable(): bool
@@ -589,7 +627,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value is loosely numeric (e.g. numeric strings, scientific notation).
+     * Value is loosely numeric (e.g., numeric strings, scientific notation).
      *
      * @return bool
      */
@@ -609,7 +647,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Value is number negative -20
+     * Value is the number negative -20
      *
      * @return bool
      */
@@ -641,7 +679,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if string length is more than start ($min), or between ($min) and ($max)
+     * Check if the string length is more than start ($min), or between ($min) and ($max)
      *
      * @param  int      $min start length
      * @param  int|null $max end length
@@ -656,7 +694,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if array is empty
+     * Check if an array is empty
      *
      * @return bool
      */
@@ -666,7 +704,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if all items in array is truthy
+     * Check if all items in an array are truthy
      *
      * @param string|int|float $key
      * @return bool
@@ -683,7 +721,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if truthy item exist in array
+     * Check if a truthy item exists in an array
      *
      * @param string|int|float $key
      * @return bool
@@ -734,6 +772,7 @@ class Inp implements InpInterface
 
     /**
      * Check int value is equal to int value
+     *
      * @param int $value
      * @return bool
      */
@@ -744,6 +783,7 @@ class Inp implements InpInterface
 
     /**
      * Value string length is equal to ($length)
+     *
      * @param  int  $length
      * @return bool
      */
@@ -756,7 +796,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if equals to expected value
+     * Strict data type validation check if equals to the expected value
      *
      * @param mixed $expected
      * @return bool
@@ -767,7 +807,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Flexible data type validation check if loosely equals to expected value
+     * Flexible data type validation check if loosely equals to the expected value
      *
      * @param mixed $expected
      * @return bool
@@ -802,6 +842,7 @@ class Inp implements InpInterface
 
     /**
      * IF value is less than to parameter
+     *
      * @param float|int $num
      * @return bool
      */
@@ -812,6 +853,7 @@ class Inp implements InpInterface
 
     /**
      * IF value is more than to parameter
+     *
      * @param float|int $num
      * @return bool
      */
@@ -822,6 +864,7 @@ class Inp implements InpInterface
 
     /**
      * Check is a valid version number
+     *
      * @param bool $strict (validate as a semantic Versioning, e.g. 1.0.0)
      * @return bool
      */
@@ -833,7 +876,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Validate/compare if a version is equal/more/equalMore/less... e.g than withVersion
+     * Validate/compare if a version is equal/more/equalMore/less... e.g., than withVersion
+     *
      * @param string $withVersion
      * @param string $operator '!='|'<'|'<='|'<>'|'='|'=='|'>'|'>='|'eq'|'ge'|'gt'|'le'|'lt'|'ne'
      * @return bool
@@ -850,6 +894,7 @@ class Inp implements InpInterface
      * Lossy password - Will return false if a character inputted is not allowed
      * [a-zA-Z\d$@$!%*?&] - Matches "any" letter (uppercase or lowercase), digit, or special character
      * from the allowed set of special characters
+     *
      * @param integer $length Minimum length
      * @return bool
      */
@@ -867,6 +912,7 @@ class Inp implements InpInterface
      * [A-Za-z\d$@$!%*?&]{1,} - matches 1 or more characters consisting of letters, digits,
      * and the allowed special characters
      * I do tho recommend that you validate the length with @length(8, 60) method!
+     *
      * @param integer $length Minimum length
      * @return bool
      */
@@ -888,7 +934,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if the value contains only alphabetic characters (a–z or A–Z).
+     * Check if the value contains only alphabetic characters (a - z or A–Z).
      *
      * @return bool
      */
@@ -898,7 +944,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if the value contains only lowercase letters (a–z).
+     * Check if the value contains only lowercase letters (a - z).
      *
      * @return bool
      */
@@ -908,7 +954,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if the value contains only uppercase letters (A–Z).
+     * Check if the value contains only uppercase letters (A - Z).
      *
      * @return bool
      */
@@ -918,7 +964,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Is Hex color code string
+     * Is Hex color code string?
+     *
      * @return bool
      */
     public function isHex(): bool
@@ -928,6 +975,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is a date
+     *
      * @param string $format validate after this date format (default Y-m-d)
      * @return bool
      */
@@ -938,6 +986,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is a date and time
+     *
      * @return bool
      */
     public function isDateWithTime(): bool
@@ -947,6 +996,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is a date and time
+     *
      * @param bool $withSeconds
      * @return bool
      */
@@ -956,10 +1006,11 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check "minimum" age (value format should be validated date "Y-m-d")
+     * Check "minimum" age (a value format should be validated date "Y-m-d")
+     *
      * @param int $checkAge
      * @return bool
-     * @throws \DateMalformedStringException
+     * @throws Exception
      */
     public function isAge(int $checkAge): bool
     {
@@ -972,6 +1023,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid domain
+     *
      * @param  bool $strict stricter = true
      * @return bool
      */
@@ -983,6 +1035,7 @@ class Inp implements InpInterface
 
     /**
      * Check if is valid URL (http|https is required)
+     *
      * @return bool
      */
     public function isUrl(): bool
@@ -991,7 +1044,8 @@ class Inp implements InpInterface
     }
 
     /**
-     * Check if "Host|domain" has an valid DNS (will check A, AAAA and MX)
+     * Check if "Host|domain" has a valid DNS (will check A, AAAA, and MX)
+     *
      * @psalm-suppress UndefinedConstant
      * @noinspection PhpComposerExtensionStubsInspection
      * @return bool
@@ -1002,7 +1056,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if value is a valid HTTP status code
+     * Strict data type validation check if the value is a valid HTTP status code
      *
      * @return bool
      */
@@ -1021,7 +1075,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if value is HTTP 200 OK
+     * Strict data type validation check if the value is HTTP 200 OK
      *
      * @return bool
      */
@@ -1031,7 +1085,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if value is a 2xx success HTTP code
+     * Strict data type validation check if the value is a 2xx success HTTP code
      *
      * @return bool
      */
@@ -1043,7 +1097,7 @@ class Inp implements InpInterface
 
 
     /**
-     * Strict data type validation check if value is a 4xx client error HTTP code
+     * Strict data type validation check if the value is a 4xx client error HTTP code
      *
      * @return bool
      */
@@ -1054,7 +1108,7 @@ class Inp implements InpInterface
     }
 
     /**
-     * Strict data type validation check if value is a 5xx server error HTTP code
+     * Strict data type validation check if the value is a 5xx server error HTTP code
      *
      * @return bool
      */
@@ -1067,6 +1121,7 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "one" matches
+     *
      * @param array $arr
      * @return bool
      * @throws ErrorException
@@ -1085,6 +1140,7 @@ class Inp implements InpInterface
 
     /**
      * Validate multiple. Will return true if "all" matches
+     *
      * @param array $arr
      * @return bool
      * @throws ErrorException
@@ -1102,8 +1158,9 @@ class Inp implements InpInterface
 
     /**
      * Check if is a date and a "valid range"
+     *
      * @param string $format validate after this date format (default Y-m-d H:i)
-     * @return array|false E.g. array(T1, T2); T1 = start and T2 = end
+     * @return array|false E.g., array(T1, T2); T1 = start, and T2 = end
      */
     public function dateRange(string $format = "Y-m-d H:i"): array|false
     {

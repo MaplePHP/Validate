@@ -3,7 +3,7 @@
  * @Package:    MaplePHP - Luhn algorithm
  * @Author:     Daniel Ronkainen
  * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
-                Don't delete this comment, its part of the license.
+                Don't delete this comment, it's part of the license.
  */
 
 namespace MaplePHP\Validate;
@@ -56,7 +56,7 @@ class DNS
     }
 
     /**
-     * Check if value is a valid mx host record
+     * Check if the value is a valid mx host record
      *
      * @return bool
      */
@@ -68,7 +68,7 @@ class DNS
 
 
     /**
-     * Check if value is a valid CNAME record
+     * Check if the value is a valid CNAME record
      *
      * A CNAME record is used to alias a domain to another domain.
      *
@@ -119,10 +119,9 @@ class DNS
     {
         return checkdnsrr($this->host, 'NS');
     }
-    
 
     /**
-     * Check if the host contains a 'SOA' record in the DNS.
+     * Check if the host contains an 'SOA' record in the DNS.
      *
      * A 'SOA' (Start of Authority) record provides information about the
      * domain's administrative information, such as the primary DNS server,
@@ -134,7 +133,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'SOA');
     }
-    
 
     /**
      * Check if the host contains a 'TXT' record in the DNS.
@@ -148,7 +146,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'TXT');
     }
-    
 
     /**
      * Check if the host contains an 'SRV' record in the DNS.
@@ -162,7 +159,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'SRV');
     }
-    
 
     /**
      * Check if the host contains a 'NAPTR' record in the DNS.
@@ -176,7 +172,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'NAPTR');
     }
-    
 
     /**
      * Check if the host contains an 'A6' record in the DNS.
@@ -190,7 +185,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'A6');
     }
-    
 
     /**
      * Check if the host contains any valid DNS record of any type.
@@ -204,7 +198,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'ANY');
     }
-    
 
     /**
      * Check if the host contains all DNS records.
@@ -219,7 +212,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'ALL');
     }
-    
 
     /**
      * Check if the host contains a 'CAA' record in the DNS.
@@ -233,7 +225,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'CAA');
     }
-    
 
     /**
      * Check if the host contains a 'PTR' record in the DNS.
@@ -247,7 +238,6 @@ class DNS
     {
         return checkdnsrr($this->host, 'PTR');
     }
-
 
     /**
      * Check if the host contains an 'HINFO' record in the DNS.

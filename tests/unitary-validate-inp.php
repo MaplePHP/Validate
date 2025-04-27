@@ -153,7 +153,16 @@ $unit->case("MaplePHP input validate test", function() {
         "equal" => [true],
     ], "Expect url to be true");
 
-    $this->add(Inp::value("examplethatwillfail.se")->dns(), [
+
+    $this->add(Inp::value("daniel@creativearmy.se")->isDeliverableEmail(), [
+        "equal" => [true],
+    ], "wdwq required to be true");
+
+    $this->add(Inp::value("daniel@creativearmy.se")->dns()->isMxRecord(), [
+        "equal" => [true],
+    ], "wdwq required to be true");
+
+    $this->add(Inp::value("examplethatwillfail.se")->dns()->isAddressRecord(), [
         "equal" => [false],
     ], "Expect dns to be false");
 
@@ -186,5 +195,6 @@ $unit->case("MaplePHP input validate test", function() {
     $this->add(Inp::value("required")->required(), [
         "equal" => [true],
     ], "Expect required to be true");
+
 
 });
