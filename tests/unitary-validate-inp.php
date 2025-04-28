@@ -196,5 +196,5 @@ $unit->case("MaplePHP input validate test", function() {
         "equal" => [true],
     ], "Expect required to be true");
 
-
+    //echo $this->listAllProxyMethods(Validator::class, isolateClass: true);
 });

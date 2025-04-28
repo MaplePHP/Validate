@@ -56,7 +56,7 @@ $valid = $inp->validateInData("user.name", "length", [1, 200]);
 
 ---
 
-## Using the Validation Pool
+## Using the Chain validations
 
 The `ValidationChain` class allows you to chain multiple validations on a single value and check the overall result:
 
