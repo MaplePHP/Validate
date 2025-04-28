@@ -6,7 +6,7 @@
                 Don't delete this comment, its part of the license.
  */
 
-namespace MaplePHP\Validate;
+namespace MaplePHP\Validate\Validators;
 
 class Luhn
 {
@@ -144,7 +144,7 @@ class Luhn
      */
     public function vatNumber(): bool
     {
-        $vat = new ValidVatFormat($this->string);
+        $vat = new Vat($this->string);
         if ($vat->validate()) {
             if ($vat->getCountryCode() === "SE") {
                 return $this->orgNumber();

@@ -77,17 +77,15 @@ use ErrorException;
  * @method self oneOf(array $arr)
  * @method self allOf(array $arr)
  */
-class ValidatePool
+class ValidationChain
 {
     private mixed $value;
     private ?string $key = null;
     private ?string $validationName = null;
     private array $error = [];
 
-    private ?Inp $inp = null;
-
     /**
-     * Constructor for the ValidatePool class.
+     * Constructor for the ValidationChain class.
      *
      * @param mixed $value The initial value to be validated.
      */
@@ -134,7 +132,7 @@ class ValidatePool
     }
 
     /**
-     * Access a validation from Inp instance
+     * Access a validation from Validator instance
      *
      * @param string $name
      * @param array $arguments
@@ -148,14 +146,14 @@ class ValidatePool
             $name = substr($name, 1);
         }
 
-        $this->inp = new Inp($this->value);
-        if(!method_exists($this->inp, $name)) {
-            throw new BadMethodCallException("Method $name does not exist in class " . Inp::class . ".");
+        $inp = new Validator($this->value);
+        if(!method_exists($inp, $name)) {
+            throw new BadMethodCallException("Method $name does not exist in class " . Validator::class . ".");
         }
-        $valid = $this->inp->$name(...$arguments);
+        $valid = $inp->$name(...$arguments);
 
-        // If using traverse method in Inp
-        if($valid instanceof Inp) {
+        // If using traverse method in Validator
+        if($valid instanceof Validator) {
             throw new BadMethodCallException("The method ->$name() is not supported with " .
                 __CLASS__ . ". Use ->validateInData() instead!");
         }
@@ -190,18 +188,6 @@ class ValidatePool
         return $this->error;
     }
 
-    public function getNormalizedError(): array
-    {
-        $new = [];
-        $error = $this->getError();
-        foreach($error as $keyA => $arr) {
-            foreach($arr as $keyB => $bool) {
-                $new[$keyA][$keyB] = !$bool;
-            }
-        }
-        return $new;
-    }
-
     /**
      * Checks if there are any errors recorded in the validation process.
      *
@@ -221,4 +207,18 @@ class ValidatePool
     {
         return !$this->getError();
     }
+
+    /*
+    public function getNormalizedError(): array
+    {
+        $new = [];
+        $error = $this->getError();
+        foreach($error as $keyA => $arr) {
+            foreach($arr as $keyB => $bool) {
+                $new[$keyA][$keyB] = !$bool;
+            }
+        }
+        return $new;
+    }
+     */
 }

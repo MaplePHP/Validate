@@ -6,7 +6,9 @@
                 Don't delete this comment, it's part of the license.
  */
 
-namespace MaplePHP\Validate;
+namespace MaplePHP\Validate\Validators;
+
+use InvalidArgumentException;
 
 class DNS
 {
@@ -264,12 +266,12 @@ class DNS
      * @param int $type The DNS record type to match.
      * @return array|false Returns an array of matched DNS records, or false if none are found.
      *
-     * @throws \InvalidArgumentException If an invalid or unsupported DNS type is provided.
+     * @throws InvalidArgumentException If an invalid or unsupported DNS type is provided.
      */
     public function getDnsRecordForType(int $type): array|false
     {
         if(!isset(self::ALOWED_DNS_TYPES[$type])) {
-            throw new \InvalidArgumentException('Invalid DNS type. Use one of ' . implode(', ', self::ALOWED_DNS_TYPES) . '.');
+            throw new InvalidArgumentException('Invalid DNS type. Use one of ' . implode(', ', self::ALOWED_DNS_TYPES) . '.');
         }
         $result = dns_get_record($this->host, $type);
         if (is_array($result) && count($result) > 0) {
@@ -291,6 +293,6 @@ class DNS
             define('INTL_IDNA_VARIANT_2003', 0);
         }
         $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
-        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . '.';
+        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . 'src';
     }
 }
