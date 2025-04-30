@@ -5,11 +5,13 @@
  * when used in MaplePHP framework you can skip the "bash code" at top and the "autoload file"!
  */
 
+use MaplePHP\Unitary\TestCase;
 use MaplePHP\Unitary\Unit;
+use MaplePHP\Validate\ValidationChain;
 use MaplePHP\Validate\Validator;
 
 $unit = new Unit();
-$unit->case("MaplePHP input validate test", function() {
+$unit->group("MaplePHP input validate test", function(TestCase $inst) {
 
     $strVal = Validator::value("TestStringValue");
     $testStrValidates = ["isString", "required", "hasValue"];
@@ -156,11 +158,11 @@ $unit->case("MaplePHP input validate test", function() {
 
     $this->add(Validator::value("daniel@creativearmy.se")->isDeliverableEmail(), [
         "equal" => [true],
-    ], "wdwq required to be true");
+    ], "isDeliverableEmail failed");
 
     $this->add(Validator::value("daniel@creativearmy.se")->dns()->isMxRecord(), [
         "equal" => [true],
-    ], "wdwq required to be true");
+    ], "isMxRecord failed");
 
     $this->add(Validator::value("examplethatwillfail.se")->dns()->isAddressRecord(), [
         "equal" => [false],
@@ -196,5 +198,28 @@ $unit->case("MaplePHP input validate test", function() {
         "equal" => [true],
     ], "Expect required to be true");
 
+
+    $validPool = new ValidationChain("john.doe@gmail.com");
+
+    $validPool->isEmail()
+        ->length(1, 16)
+        ->isEmail()
+        ->notIsPhone()
+        ->endsWith(".net");
+
+
+    $inst->validate($validPool->isValid(), function(ValidationChain $inst) {
+        $inst->isFalse();
+    });
+
+    $inst->validate($validPool->hasError(), function(ValidationChain $inst) {
+        $inst->isTrue();
+    });
+
+    $inst->validate(count($validPool->getFailedValidations()), function(ValidationChain $inst) {
+        $inst->isEqualTo(2);
+    });
+
     //echo $this->listAllProxyMethods(Validator::class, isolateClass: true);
+    //echo $this->listAllProxyMethods(Validator::class, "not", isolateClass: true);
 });

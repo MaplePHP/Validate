@@ -4,14 +4,17 @@ namespace MaplePHP\Validate;
 
 use BadMethodCallException;
 use ErrorException;
+use MaplePHP\DTO\Traverse;
+use MaplePHP\Validate\Validators\DNS;
+use MaplePHP\Validate\Validators\Luhn;
 
 /**
  * @method self withValue(mixed $value)
  * @method self eq(string $key, bool $immutable = '1')
  * @method self validateInData(string $key, string $validate, array $args = '')
  * @method self getLength(string $value)
- * @method self luhn()
- * @method self dns()
+ * @method Luhn luhn()
+ * @method DNS dns()
  * @method self isRequired()
  * @method self isTrue()
  * @method self isTruthy()
@@ -94,6 +97,94 @@ use ErrorException;
  * @method self oneOf(array $arr)
  * @method self allOf(array $arr)
  * @method self dateRange(string $format = 'Y-m-d H:i')
+ * @method self notWithValue(mixed $value)
+ * @method self notEq(string $key, bool $immutable = '1')
+ * @method self notValidateInData(string $key, string $validate, array $args = '')
+ * @method self notGetLength(string $value)
+ * @method Luhn notLuhn()
+ * @method DNS notDns()
+ * @method self notIsRequired()
+ * @method self notIsTrue()
+ * @method self notIsTruthy()
+ * @method self notIsFalse()
+ * @method self notIsFalsy()
+ * @method self notIsInArray(array $haystack)
+ * @method self notIsLooselyInArray(array $haystack)
+ * @method self notKeyExists(string|int|float $key)
+ * @method self notHasValue()
+ * @method self notIsSocialNumber()
+ * @method self notIsOrgNumber()
+ * @method self notIsCreditCard()
+ * @method self notIsVatNumber()
+ * @method self notIsEmail()
+ * @method self notIsDeliverableEmail()
+ * @method self notContains(string $needle)
+ * @method self notStartsWith(string $needle)
+ * @method self notEndsWith(string $needle)
+ * @method self notFindInString(string $match, ?int $pos = '')
+ * @method self notIsPhone()
+ * @method self notIsZip(int $minLength, ?int $maxLength = '')
+ * @method self notIsFloat()
+ * @method self notIsInt()
+ * @method self notIsString()
+ * @method self notIsArray()
+ * @method self notIsObject()
+ * @method self notIsBool()
+ * @method self notIsResource()
+ * @method self notIsJson()
+ * @method self notIsFullHtml()
+ * @method self notIsBoolVal()
+ * @method self notIsNull()
+ * @method self notIsDir()
+ * @method self notIsFile()
+ * @method self notIsFileOrDirectory()
+ * @method self notIsWritable()
+ * @method self notIsReadable()
+ * @method self notIsNumber()
+ * @method self notIsNumbery()
+ * @method self notIsPositive()
+ * @method self notIsNegative()
+ * @method self notMin(float $int)
+ * @method self notMax(float $int)
+ * @method self notLength(int $min, ?int $max = '')
+ * @method self notIsArrayEmpty()
+ * @method self notItemsAreTruthy(string|int|float $key)
+ * @method self notHasTruthyItem(string|int|float $key)
+ * @method self notIsCountEqualTo(int $length)
+ * @method self notIsCountMoreThan(int $length)
+ * @method self notIsCountLessThan(int $length)
+ * @method self notToIntEqual(int $value)
+ * @method self notIsLengthEqualTo(int $length)
+ * @method self notIsEqualTo(mixed $expected)
+ * @method self notIsLooselyEqualTo(mixed $expected)
+ * @method self notIsNotEqualTo(mixed $value)
+ * @method self notIsLooselyNotEqualTo(mixed $value)
+ * @method self notIsLessThan(int|float $num)
+ * @method self notIsMoreThan(int|float $num)
+ * @method self notIsValidVersion(bool $strict = '')
+ * @method self notVersionCompare(string $withVersion, string $operator = '==')
+ * @method self notIsLossyPassword(int $length = '1')
+ * @method self notIsStrictPassword(int $length = '1')
+ * @method self notIsMatchingPattern(string $charRange)
+ * @method self notIsAlpha()
+ * @method self notIsLowerAlpha()
+ * @method self notIsUpperAlpha()
+ * @method self notIsHex()
+ * @method self notIsDate(string $format = 'Y-m-d')
+ * @method self notIsDateWithTime()
+ * @method self notIsTime(bool $withSeconds = '')
+ * @method self notIsAge(int $checkAge)
+ * @method self notIsDomain(bool $strict = '1')
+ * @method self notIsUrl()
+ * @method self notIsResolvableHost()
+ * @method self notIsHttpStatusCode()
+ * @method self notIsHttp200()
+ * @method self notIsHttpSuccess()
+ * @method self notIsHttpClientError()
+ * @method self notIsHttpServerError()
+ * @method self notOneOf(array $arr)
+ * @method self notAllOf(array $arr)
+ * @method self notDateRange(string $format = 'Y-m-d H:i')
  */
 class ValidationChain
 {
@@ -133,16 +224,36 @@ class ValidationChain
      */
     public function __call(string $name, array $arguments): self
     {
+        $newName = Traverse::value($name)
+            ->strCamelCaseToArr()
+            ->shift($rest)
+            ->implode()
+            ->toString();
+        if($rest === "not") {
+            $name = "!" . $newName;
+        }
         $this->validateWith($name, $arguments);
         return $this;
     }
 
+    /**
+     * You can add a name to error keys
+     *
+     * @param string $key
+     * @return $this
+     */
     public function mapErrorToKey(string $key): self
     {
         $this->key = $key;
         return $this;
     }
 
+    /**
+     * You can overwrite the expected validation name on error
+     *
+     * @param string $key
+     * @return $this
+     */
     public function mapErrorValidationName(string $key): self
     {
         $this->validationName = $key;
@@ -157,7 +268,7 @@ class ValidationChain
      * @return bool
      * @throws ErrorException
      */
-    public function validateWith(string $name, array $arguments = []): bool
+    public function validateWith(string $name, array|string ...$arguments): bool
     {
         $invert = str_starts_with($name, "!");
         if ($invert) {
@@ -168,7 +279,12 @@ class ValidationChain
         if(!method_exists($inp, $name)) {
             throw new BadMethodCallException("Method $name does not exist in class " . Validator::class . ".");
         }
+
+        if(isset($arguments[0][0])) {
+            $arguments = Traverse::value($arguments)->flatten()->toArray();
+        }
         $valid = $inp->$name(...$arguments);
+
 
         // If using the traverse method in Validator
         if($valid instanceof Validator) {
@@ -199,11 +315,17 @@ class ValidationChain
      * @return array Returns an associative array of errors where the key is the method name
      *               and the value is the arguments passed to the method.
      */
-    public function getError(): array
+    public function getFailedValidations(): array
     {
         $this->error = array_map('array_filter', $this->error);
         $this->error = array_filter($this->error);
         return $this->error;
+    }
+
+    // Alias for "getFailedValidations" (used in Unitary)
+    public function getError(): array
+    {
+        return $this->getFailedValidations();
     }
 
     /**
@@ -225,18 +347,4 @@ class ValidationChain
     {
         return !$this->getError();
     }
-
-    /*
-    public function getNormalizedError(): array
-    {
-        $new = [];
-        $error = $this->getError();
-        foreach($error as $keyA => $arr) {
-            foreach($arr as $keyB => $bool) {
-                $new[$keyA][$keyB] = !$bool;
-            }
-        }
-        return $new;
-    }
-     */
 }

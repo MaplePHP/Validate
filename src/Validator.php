@@ -135,8 +135,13 @@ class Validator implements InpInterface
      * @return mixed
      * @throws ErrorException
      */
-    public function validateInData(string $key, string $validate, array $args = []): bool
+    public function validateInData(string $key, string $validate, array|string ...$args): bool
     {
+
+        if(isset($args[0][0])) {
+            $args = Traverse::value($args)->flatten()->toArray();
+        }
+
         $inp = $this->eq($key, false);
         if(!method_exists($inp, $validate)) {
             throw new BadMethodCallException("Method '$validate' does not exist in " . __CLASS__ . " class.");

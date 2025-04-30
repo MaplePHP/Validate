@@ -293,6 +293,6 @@ class DNS
             define('INTL_IDNA_VARIANT_2003', 0);
         }
         $variant = (defined('INTL_IDNA_VARIANT_UTS46')) ? INTL_IDNA_VARIANT_UTS46 : INTL_IDNA_VARIANT_2003;
-        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.') . 'src';
+        return rtrim(idn_to_ascii($host, IDNA_DEFAULT, $variant), '.');
     }
 }
