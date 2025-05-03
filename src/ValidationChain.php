@@ -229,7 +229,7 @@ class ValidationChain
             ->shift($rest)
             ->implode()
             ->toString();
-        if($rest === "not") {
+        if ($rest === "not") {
             $name = "!" . $newName;
         }
         $this->validateWith($name, $arguments);
@@ -239,10 +239,10 @@ class ValidationChain
     /**
      * You can add a name to error keys
      *
-     * @param string $key
+     * @param string|null $key
      * @return $this
      */
-    public function mapErrorToKey(string $key): self
+    public function mapErrorToKey(?string $key): self
     {
         $this->key = $key;
         return $this;
@@ -251,10 +251,10 @@ class ValidationChain
     /**
      * You can overwrite the expected validation name on error
      *
-     * @param string $key
+     * @param string|null $key
      * @return $this
      */
-    public function mapErrorValidationName(string $key): self
+    public function mapErrorValidationName(?string $key): self
     {
         $this->validationName = $key;
         return $this;
@@ -276,28 +276,28 @@ class ValidationChain
         }
 
         $inp = new Validator($this->value);
-        if(!method_exists($inp, $name)) {
+        if (!method_exists($inp, $name)) {
             throw new BadMethodCallException("Method $name does not exist in class " . Validator::class . ".");
         }
 
-        if(isset($arguments[0][0])) {
+        if (isset($arguments[0][0])) {
             $arguments = Traverse::value($arguments)->flatten()->toArray();
         }
         $valid = $inp->$name(...$arguments);
 
 
         // If using the traverse method in Validator
-        if($valid instanceof Validator) {
+        if ($valid instanceof Validator) {
             throw new BadMethodCallException("The method ->$name() is not supported with " .
                 __CLASS__ . ". Use ->validateInData() instead!");
         }
 
-        if($invert) {
+        if ($invert) {
             $valid = !$valid;
         }
 
         $name = !is_null($this->validationName) ? $this->validationName : $name;
-        if(!is_null($this->key)) {
+        if (!is_null($this->key)) {
             $this->error[$this->key][$name] = !$valid;
         } else {
             $this->error[][$name] = !$valid;

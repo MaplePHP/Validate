@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @Package:    MaplePHP - Luhn algorithm
  * @Author:     Daniel Ronkainen
@@ -12,7 +13,7 @@ use InvalidArgumentException;
 
 class DNS
 {
-    const ALOWED_DNS_TYPES = [
+    public const ALOWED_DNS_TYPES = [
         DNS_A => 'DNS_A',         // Host Address
         DNS_CNAME => 'DNS_CNAME', // Canonical Name Record
         DNS_HINFO => 'DNS_HINFO', // Host Information
@@ -29,7 +30,7 @@ class DNS
         DNS_ALL => 'DNS_ALL',     // All Records
         DNS_ANY => 'DNS_ANY',     // Any Records
     ];
-    
+
     private string $host;
 
     public function __construct(string $host)
@@ -80,7 +81,7 @@ class DNS
     {
         return checkdnsrr($this->host, 'CNAME');
     }
-    
+
 
     /**
      * Check if the host contains an 'A' record in the DNS.
@@ -94,7 +95,7 @@ class DNS
     {
         return checkdnsrr($this->host, 'A');
     }
-    
+
 
     /**
      * Checks if the host contains an 'AAAA' record in the DNS.
@@ -270,7 +271,7 @@ class DNS
      */
     public function getDnsRecordForType(int $type): array|false
     {
-        if(!isset(self::ALOWED_DNS_TYPES[$type])) {
+        if (!isset(self::ALOWED_DNS_TYPES[$type])) {
             throw new InvalidArgumentException('Invalid DNS type. Use one of ' . implode(', ', self::ALOWED_DNS_TYPES) . '.');
         }
         $result = dns_get_record($this->host, $type);
@@ -279,10 +280,10 @@ class DNS
         }
         return false;
     }
-    
+
     /**
      * Get hosts (used for DNS checks)
-     * 
+     *
      * @noinspection PhpComposerExtensionStubsInspection
      * @param string $host
      * @return string

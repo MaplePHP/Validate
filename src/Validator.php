@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @Package:    MaplePHP - Input validation library
  * @Author:     Daniel Ronkainen
@@ -71,7 +72,7 @@ class Validator implements InpInterface
      */
     private function init(): void
     {
-        if(is_string($this->value) || is_numeric($this->value)) {
+        if (is_string($this->value) || is_numeric($this->value)) {
             $this->length = $this->getLength((string)$this->value);
             $this->getStr = new Str($this->value);
         }
@@ -113,9 +114,9 @@ class Validator implements InpInterface
     public function eq(string $key, bool $immutable = true): self
     {
         $value = $this->value;
-        if(is_array($this->value) || is_object($this->value)) {
+        if (is_array($this->value) || is_object($this->value)) {
             $value = Traverse::value($this->value)->eq($key)->get();
-            if(!$immutable && $value !== false) {
+            if (!$immutable && $value !== false) {
                 $this->value = $value;
                 $this->init();
                 return $this;
@@ -131,19 +132,18 @@ class Validator implements InpInterface
      *
      * @param string $key
      * @param string $validate
-     * @param array $args
+     * @param mixed $args The MIXED value to be passed to the validate method
+     * @return bool
      * @return mixed
      * @throws ErrorException
      */
-    public function validateInData(string $key, string $validate, array|string ...$args): bool
+    public function validateInData(string $key, string $validate, mixed ...$args): bool
     {
-
-        if(isset($args[0][0])) {
+        if (isset($args[0][0])) {
             $args = Traverse::value($args)->flatten()->toArray();
         }
-
         $inp = $this->eq($key, false);
-        if(!method_exists($inp, $validate)) {
+        if (!method_exists($inp, $validate)) {
             throw new BadMethodCallException("Method '$validate' does not exist in " . __CLASS__ . " class.");
         }
         return $inp->{$validate}(...$args);
@@ -193,10 +193,10 @@ class Validator implements InpInterface
      */
     public function dns(): DNS
     {
-        if(is_null($this->dns)) {
+        if (is_null($this->dns)) {
             $value = $this->value;
             $position = Traverse::value($this->value)->strPosition("@")->toInt();
-            if($position > 0) {
+            if ($position > 0) {
                 $value = Traverse::value($this->value)->strSubstr($position + 1)->toString();
             }
             $this->dns = new DNS($value);
@@ -598,7 +598,7 @@ class Validator implements InpInterface
      *
      * @return bool
      */
-    function isFileOrDirectory(): bool
+    public function isFileOrDirectory(): bool
     {
         return file_exists($this->value);
     }
@@ -718,7 +718,7 @@ class Validator implements InpInterface
      */
     public function itemsAreTruthy(string|int|float $key): bool
     {
-        if($this->isArray()) {
+        if ($this->isArray()) {
             $count = Arr::value($this->value)
                 ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
                 ->count();
@@ -735,7 +735,7 @@ class Validator implements InpInterface
      */
     public function hasTruthyItem(string|int|float $key): bool
     {
-        if($this->isArray()) {
+        if ($this->isArray()) {
             $count = Arr::value($this->value)
                 ->filter(fn ($item) => $item->flatten()->{$key}->toBool())
                 ->count();
@@ -1138,7 +1138,7 @@ class Validator implements InpInterface
         $valid = false;
         foreach ($arr as $method => $args) {
             $inst = new self($this->value);
-            if(call_user_func_array([$inst, $method], $args)) {
+            if (call_user_func_array([$inst, $method], $args)) {
                 $valid = true;
             }
         }
@@ -1156,7 +1156,7 @@ class Validator implements InpInterface
     {
         foreach ($arr as $method => $args) {
             $inst = new self($this->value);
-            if(!call_user_func_array([$inst, $method], $args)) {
+            if (!call_user_func_array([$inst, $method], $args)) {
                 return false;
             }
         }

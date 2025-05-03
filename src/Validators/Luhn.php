@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @Package:    MaplePHP - Luhn algorithm
  * @Author:     Daniel Ronkainen

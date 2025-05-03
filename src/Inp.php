@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @Package:    MaplePHP - Input shortcut to validation library
  * @Author:     Daniel Ronkainen

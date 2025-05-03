@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @Package:    MaplePHP - Validate - Aliases
  * @Author:     Daniel Ronkainen
@@ -8,8 +9,8 @@
 
 namespace MaplePHP\Validate\Traits;
 
-trait InpAliases {
-
+trait InpAliases
+{
     public function isDns(): bool
     {
         return $this->isResolvableHost();
