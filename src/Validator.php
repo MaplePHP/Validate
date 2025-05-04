@@ -260,23 +260,23 @@ class Validator implements InpInterface
     /**
      * Strict data type validation check if a value exists in a given array
      *
-     * @param array $haystack
+     * @param mixed $needle
      * @return bool
      */
-    public function isInArray(array $haystack): bool
+    public function isInArray(mixed $needle): bool
     {
-        return in_array($this->value, $haystack, true);
+        return in_array($needle, $this->value, true);
     }
 
     /**
      * Flexible data type validation check if a value exists in a given array
      *
-     * @param array $haystack
+     * @param mixed $needle
      * @return bool
      */
-    public function isLooselyInArray(array $haystack): bool
+    public function isLooselyInArray(mixed $needle): bool
     {
-        return in_array($this->value, $haystack);
+        return in_array($needle, $this->value);
     }
 
     /**
@@ -811,6 +811,17 @@ class Validator implements InpInterface
     public function isEqualTo(mixed $expected): bool
     {
         return $this->value === $expected;
+    }
+    
+    /**
+     * Strict data type validation check if value is an instance of the specified class or interface
+     *
+     * @param object|string $instance The class or interface name to check against
+     * @return bool
+     */
+    public function isInstanceOf(object|string $instance): bool
+    {
+        return $this->value instanceof $instance;
     }
 
     /**
