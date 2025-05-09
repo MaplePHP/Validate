@@ -1024,6 +1024,13 @@ class Validator implements InpInterface
     }
 
 
+    /**
+     * Check if the value is a valid hexadecimal string
+     * Validates that the string contains only hexadecimal characters (0-9, a-f, A-F)
+     *
+     * @param int|null $length Optional specific length the hex string must match
+     * @return bool Returns true if the string is valid hex, false otherwise
+     */
     public function isHexString(?int $length = null): bool
     {
         if ($length !== null && strlen($this->value) !== $length) {
