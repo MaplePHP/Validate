@@ -16,6 +16,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method Luhn luhn()
  * @method DNS dns()
  * @method self isRequired()
+ * @method self hasResponse()
  * @method self isTrue()
  * @method self isTruthy()
  * @method self isFalse()
@@ -73,7 +74,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self isNotEqualTo(mixed $value)
  * @method self isLooselyNotEqualTo(mixed $value)
  * @method self isLessThan(int|float $num)
- * @method self isMoreThan(int|float $num)
+ * @method self isGreaterThan(int|float $num)
  * @method self isValidVersion(bool $strict = '')
  * @method self versionCompare(string $withVersion, string $operator = '==')
  * @method self isLossyPassword(int $length = '1')
@@ -105,6 +106,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method Luhn notLuhn()
  * @method DNS notDns()
  * @method self notIsRequired()
+ * @method self notHasResponse()
  * @method self notIsTrue()
  * @method self notIsTruthy()
  * @method self notIsFalse()
@@ -157,11 +159,12 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notToIntEqual(int $value)
  * @method self notIsLengthEqualTo(int $length)
  * @method self notIsEqualTo(mixed $expected)
+ * @method self notIsInstanceOf(object|string $instance)
  * @method self notIsLooselyEqualTo(mixed $expected)
  * @method self notIsNotEqualTo(mixed $value)
  * @method self notIsLooselyNotEqualTo(mixed $value)
  * @method self notIsLessThan(int|float $num)
- * @method self notIsMoreThan(int|float $num)
+ * @method self notIsGreaterThan(int|float $num)
  * @method self notIsValidVersion(bool $strict = '')
  * @method self notVersionCompare(string $withVersion, string $operator = '==')
  * @method self notIsLossyPassword(int $length = '1')
@@ -286,7 +289,6 @@ class ValidationChain
         }
         $valid = $inp->$name(...$arguments);
 
-
         // If using the traverse method in Validator
         if ($valid instanceof Validator) {
             throw new BadMethodCallException("The method ->$name() is not supported with " .
@@ -297,8 +299,8 @@ class ValidationChain
             $valid = !$valid;
         }
 
-        $name = !is_null($this->validationName) ? $this->validationName : $name;
-        if (!is_null($this->key)) {
+        $name = $this->validationName !== null ? $this->validationName : $name;
+        if ($this->key !== null) {
             $this->error[$this->key][$name] = !$valid;
         } else {
             $this->error[][$name] = !$valid;

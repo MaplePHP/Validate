@@ -48,7 +48,7 @@ trait InpAliases
 
     public function hex(): bool
     {
-        return $this->isHex();
+        return $this->isHexColor();
     }
 
     public function strictPassword(int $length = 1): bool
@@ -68,7 +68,7 @@ trait InpAliases
 
     public function moreThan(float|int $num): bool
     {
-        return $this->isMoreThan($num);
+        return $this->isGreaterThan($num);
     }
 
     public function lessThan(float|int $num): bool

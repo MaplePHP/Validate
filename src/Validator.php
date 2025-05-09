@@ -180,7 +180,7 @@ class Validator implements InpInterface
      */
     public function luhn(): Luhn
     {
-        if (is_null($this->luhn)) {
+        if ($this->luhn === null) {
             $this->luhn = new Luhn($this->value);
         }
         return $this->luhn;
@@ -193,7 +193,7 @@ class Validator implements InpInterface
      */
     public function dns(): DNS
     {
-        if (is_null($this->dns)) {
+        if ($this->dns === null) {
             $value = $this->value;
             $position = Traverse::value($this->value)->strPosition("@")->toInt();
             if ($position > 0) {
@@ -215,6 +215,16 @@ class Validator implements InpInterface
             return true;
         }
         return false;
+    }
+
+    /**
+     * Will only check if there is a value
+     *
+     * @return bool
+     */
+    public function hasResponse(): bool
+    {
+        return $this->length(1);
     }
 
     /**
@@ -407,7 +417,7 @@ class Validator implements InpInterface
      */
     public function findInString(string $match, ?int $pos = null): bool
     {
-        return ((is_null($pos) && str_contains($this->value, $match)) ||
+        return (($pos === null && str_contains($this->value, $match)) ||
                 (strpos($this->value, $match) === $pos));
     }
 
@@ -418,7 +428,7 @@ class Validator implements InpInterface
      */
     public function isPhone(): bool
     {
-        if (is_null($this->getStr)) {
+        if ($this->getStr === null) {
             return false;
         }
         $val = (string)$this->getStr->replace([" ", "-", "—", "–", "(", ")"], ["", "", "", "", "", ""]);
@@ -437,7 +447,7 @@ class Validator implements InpInterface
      */
     public function isZip(int $minLength, ?int $maxLength = null): bool
     {
-        if (is_null($this->getStr)) {
+        if ($this->getStr === null) {
             return false;
         }
         $this->value = (string)$this->getStr->replace([" ", "-", "—", "–"], ["", "", "", ""]);
@@ -570,7 +580,7 @@ class Validator implements InpInterface
      */
     public function isNull(): bool
     {
-        return is_null($this->value);
+        return $this->value === null;
     }
 
     /**
@@ -875,9 +885,31 @@ class Validator implements InpInterface
      * @param float|int $num
      * @return bool
      */
-    public function isMoreThan(float|int $num): bool
+    public function isGreaterThan(float|int $num): bool
     {
         return ($this->value > $num);
+    }
+
+    /**
+     * Check if the value is at least to specified number in parameter
+     *
+     * @param float|int $num
+     * @return bool
+     */
+    public function isAtLeast(float|int $num): bool
+    {
+        return ($this->value >= $num);
+    }
+
+    /**
+     * Check if the value is at most to specified number in parameter
+     *
+     * @param float|int $num
+     * @return bool
+     */
+    public function isAtMost(float|int $num): bool
+    {
+        return ($this->value <= $num);
     }
 
     /**
@@ -986,10 +1018,20 @@ class Validator implements InpInterface
      *
      * @return bool
      */
-    public function isHex(): bool
+    public function isHexColor(): bool
     {
         return ((int)preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) > 0);
     }
+
+
+    public function isHexString(?int $length = null): bool
+    {
+        if ($length !== null && strlen($this->value) !== $length) {
+            return false;
+        }
+        return preg_match('/^[a-f0-9]+$/i', $this->value) === 1;
+    }
+
 
     /**
      * Check if is a date

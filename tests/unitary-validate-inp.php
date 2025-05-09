@@ -26,6 +26,16 @@ $unit->group("MaplePHP input validate test", function(TestCase $inst) {
         "equal" => [false],
     ], "Expect socialNumber to be false");
 
+
+    $this->add(Validator::value("#CCC")->isHexColor(), [
+        "equal" => [true],
+    ], "Expect isHexColor to be true");
+
+    $this->add(Validator::value("#F1F1F1")->isHexColor(), [
+        "equal" => [true],
+    ], "Expect isHexColor to be true");
+
+
     $this->add(Validator::value("4030000010001234")->creditCard(), [
         "equal" => [true],
     ], "Expect creditCard to be true");
