@@ -1023,7 +1023,6 @@ class Validator implements InpInterface
         return ((int)preg_match('/^#([0-9A-F]{3}){1,2}$/i', $this->value) > 0);
     }
 
-
     /**
      * Check if the value is a valid hexadecimal string
      * Validates that the string contains only hexadecimal characters (0-9, a-f, A-F)
@@ -1038,7 +1037,6 @@ class Validator implements InpInterface
         }
         return preg_match('/^[a-f0-9]+$/i', $this->value) === 1;
     }
-
 
     /**
      * Check if is a date
@@ -1185,6 +1183,71 @@ class Validator implements InpInterface
         return $intVal >= 500 && $intVal < 600;
     }
 
+    /**
+     * Validate if the given string is a valid HTTP request method
+     * Valid methods are: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+     *
+     * @return bool Returns true if the method is valid, false otherwise
+     */
+    public function isRequestMethod(): bool
+    {
+        return in_array(strtoupper($this->value), ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']);
+    }
+
+    /**
+     * Check if a specific key exists in the current value (array/object)
+     * Uses Traverse to check key existence without flattening
+     *
+     * @param string|int|float $key The key to check for
+     * @return bool Returns true if the key exists, false otherwise
+     */
+    public function hasKey(string|int|float $key): bool
+    {
+        $obj = new Traverse($this->value);
+        return $obj->eq($key)->toBool();
+    }
+
+    /**
+     * Check if a specific key exists in a flattened array /object structure
+     * Uses Traverse to check key existence after flattening the hierarchical structure
+     *
+     * @param string|int|float $key The key to check for in the flattened structure
+     * @return bool Returns true if the key exists in a flattened structure, false otherwise
+     */
+    public function hasFlattenKey(string|int|float $key): bool
+    {
+        $obj = new Traverse($this->value);
+        return $obj->flattenWithKeys()->eq($key)->toBool();
+    }
+    
+    /**
+     * Check if a query parameter exists in the URL query string and optionally match its value
+     *
+     * @param string $queryParamKey The name of the query parameter to check
+     * @param string|null $queryParamValue Optional value to match against the query parameter
+     * @return bool Returns true if parameter exists and matches value (if provided), false otherwise
+     */
+    public function hasQueryParam(string $queryParamKey, ?string $queryParamValue = null): bool
+    {
+        $obj = new Traverse($this->value);
+        $obj = $obj->parseStr()->eq($queryParamKey);
+        return $obj->toBool() && ($queryParamValue === null || $obj->toString() === $queryParamValue);
+    }
+
+    /**
+     * Check if a query parameter exists and strictly matches a specific value
+     *
+     * @param string $queryParamKey The name of the query parameter to check
+     * @param mixed $queryParamValue The value to match against the query parameter
+     * @return bool Returns true if parameter exists and strictly matches the value
+     */
+    public function isQueryParam(string $queryParamKey, mixed $queryParamValue): bool
+    {
+        if (!is_string($this->value)) {
+            parse_str($this->value, $params);
+        }
+        return isset($params[$queryParamKey]) && $params[$queryParamKey] === $queryParamValue;
+    }
 
     /**
      * Validate multiple. Will return true if "one" matches

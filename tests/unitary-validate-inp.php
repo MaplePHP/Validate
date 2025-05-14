@@ -230,6 +230,40 @@ $unit->group("MaplePHP input validate test", function(TestCase $inst) {
         $inst->isEqualTo(2);
     });
 
+
+    $inst->validate(Validator::value("GET")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("POST")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("PUT")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("DELETE")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("PATCH")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("HEAD")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("OPTIONS")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+    $inst->validate(Validator::value("options")->isRequestMethod(), function(ValidationChain $inst) {
+        $inst->istrue();
+    });
+
+
     //echo $this->listAllProxyMethods(Validator::class, isolateClass: true);
     //echo $this->listAllProxyMethods(Validator::class, "not", isolateClass: true);
 });
