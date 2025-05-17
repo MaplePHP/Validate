@@ -308,6 +308,8 @@ class ValidationChain
         }
 
         $name = $this->validationName !== null ? $this->validationName : $name;
+        $name = ($invert) ? "not" . ucfirst($name) : $name;
+
         if ($this->key !== null) {
             $this->error[$this->key][$name] = !$valid;
         } else {
