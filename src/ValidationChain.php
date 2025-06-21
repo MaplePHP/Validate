@@ -61,6 +61,8 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self max(float $int)
  * @method self length(int $min, ?int $max = '')
  * @method self isArrayEmpty()
+ * @method self hasValueAt(string|int|float $key, mixed $needle)
+ * @method self hasJsonValueAt(string|int|float $key, mixed $needle)
  * @method self itemsAreTruthy(string|int|float $key)
  * @method self hasTruthyItem(string|int|float $key)
  * @method self isCountEqualTo(int $length)
@@ -70,6 +72,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self isLengthEqualTo(int $length)
  * @method self isEqualTo(mixed $expected)
  * @method self isInstanceOf(object|string $instance)
+ * @method self isClass(string $instance)
  * @method self isLooselyEqualTo(mixed $expected)
  * @method self isNotEqualTo(mixed $value)
  * @method self isLooselyNotEqualTo(mixed $value)
@@ -155,6 +158,8 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notMax(float $int)
  * @method self notLength(int $min, ?int $max = '')
  * @method self notIsArrayEmpty()
+ * @method self notHasValueAt(string|int|float $key, mixed $needle)
+ * @method self notHasJsonValueAt(string|int|float $key, mixed $needle)
  * @method self notItemsAreTruthy(string|int|float $key)
  * @method self notHasTruthyItem(string|int|float $key)
  * @method self notIsCountEqualTo(int $length)
@@ -164,6 +169,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notIsLengthEqualTo(int $length)
  * @method self notIsEqualTo(mixed $expected)
  * @method self notIsInstanceOf(object|string $instance)
+ * @method self notIsClass(string $instance)
  * @method self notIsLooselyEqualTo(mixed $expected)
  * @method self notIsNotEqualTo(mixed $value)
  * @method self notIsLooselyNotEqualTo(mixed $value)
@@ -197,6 +203,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notOneOf(array $arr)
  * @method self notAllOf(array $arr)
  * @method self notDateRange(string $format = 'Y-m-d H:i')
+ * @method self isThrowable(callable $exceptionArg)
  */
 class ValidationChain
 {
@@ -204,6 +211,7 @@ class ValidationChain
     private ?string $key = null;
     private ?string $validationName = null;
     private array $error = [];
+    private array $errorArgs = [];
 
     /**
      * Constructor for the ValidationChain class.
@@ -224,6 +232,23 @@ class ValidationChain
     public function getValue(): mixed
     {
         return $this->value;
+    }
+
+    // Alias to getValue
+    public function val(): mixed
+    {
+        return $this->getValue();
+    }
+
+    // Alias to getValue
+    public function value(): mixed
+    {
+        return $this->getValue();
+    }
+
+    public function setValue(mixed $value): void
+    {
+        $this->value = $value;
     }
 
     /**
@@ -280,7 +305,7 @@ class ValidationChain
      * @return bool
      * @throws ErrorException
      */
-    public function validateWith(string $name, array|string ...$arguments): bool
+    public function validateWith(string $name, array $arguments): bool
     {
         $invert = str_starts_with($name, "!");
         if ($invert) {
@@ -291,10 +316,11 @@ class ValidationChain
         if (!method_exists($inp, $name)) {
             throw new BadMethodCallException("Method $name does not exist in class " . Validator::class . ".");
         }
-
-        if (isset($arguments[0][0])) {
+        /*
+         if (isset($arguments[0][0])) {
             $arguments = Traverse::value($arguments)->flatten()->toArray();
         }
+         */
         $valid = $inp->$name(...$arguments);
 
         // If using the traverse method in Validator
@@ -311,9 +337,9 @@ class ValidationChain
         $name = ($invert) ? "not" . ucfirst($name) : $name;
 
         if ($this->key !== null) {
-            $this->error[$this->key][$name] = !$valid;
+            $this->error[$this->key][$name] = !$valid ? $arguments : false;
         } else {
-            $this->error[][$name] = !$valid;
+            $this->error[][$name] = !$valid ? $arguments : false;
         }
 
         $this->validationName = $this->key = null;
@@ -330,9 +356,17 @@ class ValidationChain
      */
     public function getFailedValidations(): array
     {
-        $this->error = array_map('array_filter', $this->error);
+
+        $this->error = array_map(fn($item) => array_filter($item, fn($v) => $v !== false), $this->error);
         $this->error = array_filter($this->error);
         return $this->error;
+    }
+
+    public function getFailedArguments(): array
+    {
+        $this->errorArgs = array_map('array_filter', $this->errorArgs);
+        $this->errorArgs = array_filter($this->errorArgs);
+        return $this->errorArgs;
     }
 
     // Alias for "getFailedValidations" (used in Unitary)

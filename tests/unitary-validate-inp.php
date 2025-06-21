@@ -11,200 +11,200 @@ use MaplePHP\Validate\ValidationChain;
 use MaplePHP\Validate\Validator;
 
 $unit = new Unit();
-$unit->group("MaplePHP input validate test", function(TestCase $inst) {
+$unit->group("MaplePHP input validate test", function(TestCase $case) {
 
     $strVal = Validator::value("TestStringValue");
     $testStrValidates = ["isString", "required", "hasValue"];
 
     foreach ($testStrValidates as $validate) {
-        $this->add($strVal->{$validate}(), [
+        $case->add($strVal->{$validate}(), [
             "equal" => [true],
         ], "Expect {$validate} to be true");
     }
 
-    $this->add(Validator::value("8808218329")->socialNumber(), [
+    $case->add(Validator::value("8808218329")->socialNumber(), [
         "equal" => [false],
     ], "Expect socialNumber to be false");
 
 
-    $this->add(Validator::value("#CCC")->isHexColor(), [
+    $case->add(Validator::value("#CCC")->isHexColor(), [
         "equal" => [true],
     ], "Expect isHexColor to be true");
 
-    $this->add(Validator::value("#F1F1F1")->isHexColor(), [
+    $case->add(Validator::value("#F1F1F1")->isHexColor(), [
         "equal" => [true],
     ], "Expect isHexColor to be true");
 
 
-    $this->add(Validator::value("4030000010001234")->creditCard(), [
+    $case->add(Validator::value("4030000010001234")->creditCard(), [
         "equal" => [true],
     ], "Expect creditCard to be true");
 
-    $this->add(Validator::value("john.doe-gmail.com")->email(), [
+    $case->add(Validator::value("john.doe-gmail.com")->email(), [
         "equal" => [false],
     ], "Expect creditCard to be false");
 
-    $this->add(Validator::value("Hello world!")->findInString("world"), [
+    $case->add(Validator::value("Hello world!")->findInString("world"), [
         "equal" => [true],
     ], "Expect findInString to be true");
 
-    $this->add(Validator::value("+46 (0) 702-83 27 12")->phone(), [
+    $case->add(Validator::value("+46 (0) 702-83 27 12")->phone(), [
         "equal" => [true],
     ], "Expect phone to be true");
 
-    $this->add(Validator::value("252522")->zip(5), [
+    $case->add(Validator::value("252522")->zip(5), [
         "equal" => [true],
     ], "Expect zip to be true");
 
     $testDataTypeValidations = ['isString', 'isInt', 'isFloat', 'isArray', 'isObject', 'isBool'];
-    $this->add(Validator::value("Is string")->isString(), [
+    $case->add(Validator::value("Is string")->isString(), [
         "equal" => [true],
     ], "Expect isString to be true");
 
-    $this->add(Validator::value(true)->isInt(), [
+    $case->add(Validator::value(true)->isInt(), [
         "equal" => [true],
     ], "Expect isInt to be true");
 
-    $this->add(Validator::value(22.12)->isFloat(), [
+    $case->add(Validator::value(22.12)->isFloat(), [
         "equal" => [true],
     ], "Expect isFloat to be true");
 
-    $this->add(Validator::value([1, 2, 3])->isArray(), [
+    $case->add(Validator::value([1, 2, 3])->isArray(), [
         "equal" => [true],
     ], "Expect isArray to be true");
 
-    $this->add(Validator::value(new stdClass())->isObject(), [
+    $case->add(Validator::value(new stdClass())->isObject(), [
         "equal" => [true],
     ], "Expect isObject to be true");
 
-    $this->add(Validator::value(false)->isBool(), [
+    $case->add(Validator::value(false)->isBool(), [
         "equal" => [true],
     ], "Expect isBool to be true");
 
-    $this->add(Validator::value("222.33")->number(), [
+    $case->add(Validator::value("222.33")->number(), [
         "equal" => [true],
     ], "Expect number to be true");
 
-    $this->add(Validator::value(100)->positive(), [
+    $case->add(Validator::value(100)->positive(), [
         "equal" => [true],
     ], "Expect positive to be true");
 
-    $this->add(Validator::value(-100)->negative(), [
+    $case->add(Validator::value(-100)->negative(), [
         "equal" => [true],
     ], "Expect negative to be true");
 
-    $this->add(Validator::value(10)->min(10), [
+    $case->add(Validator::value(10)->min(10), [
         "equal" => [true],
     ], "Expect min to be true");
 
-    $this->add(Validator::value(10)->max(10), [
+    $case->add(Validator::value(10)->max(10), [
         "equal" => [true],
     ], "Expect max to be true");
 
-    $this->add(Validator::value("Lorem ipsum")->length(1, 11), [
+    $case->add(Validator::value("Lorem ipsum")->length(1, 11), [
         "equal" => [true],
     ], "Expect length to be true");
 
-    $this->add(Validator::value("22222")->equalLength(5), [
+    $case->add(Validator::value("22222")->equalLength(5), [
         "equal" => [true],
     ], "Expect equalLength to be true");
 
-    $this->add(Validator::value("hello")->equal("hello"), [
+    $case->add(Validator::value("hello")->equal("hello"), [
         "equal" => [true],
     ], "Expect equal to be true");
 
-    $this->add(Validator::value("world")->notEqual("hello"), [
+    $case->add(Validator::value("world")->notEqual("hello"), [
         "equal" => [true],
     ], "Expect notEqual to be true");
 
-    $this->add(Validator::value("1.2.3")->validVersion(true), [
+    $case->add(Validator::value("1.2.3")->validVersion(true), [
         "equal" => [true],
     ], "Expect validVersion to be true");
 
-    $this->add(Validator::value("1.2.0")->versionCompare("1.2.0"), [
+    $case->add(Validator::value("1.2.0")->versionCompare("1.2.0"), [
         "equal" => [true],
     ], "Expect versionCompare to be true");
 
-    $this->add(Validator::value("MyStrongPass")->lossyPassword(), [
+    $case->add(Validator::value("MyStrongPass")->lossyPassword(), [
         "equal" => [true],
     ], "Expect lossyPassword to be true");
 
-    $this->add(Validator::value("My@StrongPass12")->strictPassword(), [
+    $case->add(Validator::value("My@StrongPass12")->strictPassword(), [
         "equal" => [true],
     ], "Expect strictPassword to be true");
 
-    $this->add(Validator::value("HelloWorld")->atoZ(), [
+    $case->add(Validator::value("HelloWorld")->atoZ(), [
         "equal" => [true],
     ], "Expect atoZ to be true");
 
-    $this->add(Validator::value("welloworld")->lowerAtoZ(), [
+    $case->add(Validator::value("welloworld")->lowerAtoZ(), [
         "equal" => [true],
     ], "Expect lowerAtoZ to be true");
 
-    $this->add(Validator::value("HELLOWORLD")->upperAtoZ(), [
+    $case->add(Validator::value("HELLOWORLD")->upperAtoZ(), [
         "equal" => [true],
     ], "Expect upperAtoZ to be true");
 
-    $this->add(Validator::value("#F1F1F1")->hex(), [
+    $case->add(Validator::value("#F1F1F1")->hex(), [
         "equal" => [true],
     ], "Expect hex to be true");
 
-    $this->add(Validator::value("1922-03-01")->date(), [
+    $case->add(Validator::value("1922-03-01")->date(), [
         "equal" => [true],
     ], "Expect date to be true");
 
-    $this->add(Validator::value("1988-08-21")->age(18), [
+    $case->add(Validator::value("1988-08-21")->age(18), [
         "equal" => [true],
     ], "Expect age to be true");
 
-    $this->add(Validator::value("example.se")->domain(), [
+    $case->add(Validator::value("example.se")->domain(), [
         "equal" => [true],
     ], "Expect domain to be true");
 
-    $this->add(Validator::value("https://example.se")->url(), [
+    $case->add(Validator::value("https://example.se")->url(), [
         "equal" => [true],
     ], "Expect url to be true");
 
 
-    $this->add(Validator::value("daniel@creativearmy.se")->isDeliverableEmail(), [
+    $case->add(Validator::value("daniel@creativearmy.se")->isDeliverableEmail(), [
         "equal" => [true],
     ], "isDeliverableEmail failed");
 
-    $this->add(Validator::value("daniel@creativearmy.se")->dns()->isMxRecord(), [
+    $case->add(Validator::value("daniel@creativearmy.se")->dns()->isMxRecord(), [
         "equal" => [true],
     ], "isMxRecord failed");
 
-    $this->add(Validator::value("examplethatwillfail.se")->dns()->isAddressRecord(), [
+    $case->add(Validator::value("examplethatwillfail.se")->dns()->isAddressRecord(), [
         "equal" => [false],
     ], "Expect dns to be false");
 
-    $this->add(Validator::value("Lorem ipsum")->oneOf([
+    $case->add(Validator::value("Lorem ipsum")->oneOf([
         "length" => [120, 200],
         "isString" => []
     ]), [
         "equal" => [true],
     ], "Expect oneOf to be true");
 
-    $this->add(Validator::value("Lorem ipsum")->allOf([
+    $case->add(Validator::value("Lorem ipsum")->allOf([
         "length" => [1, 200],
         "isString" => []
     ]), [
         "equal" => [true],
     ], "Expect allOf to be true");
 
-    $this->add(Validator::value("required")->required(), [
+    $case->add(Validator::value("required")->required(), [
         "equal" => [true],
     ], "Expect required to be true");
 
-    $this->add(Validator::value("required")->required(), [
+    $case->add(Validator::value("required")->required(), [
         "equal" => [true],
     ], "Expect required to be true");
 
-    $this->add(Validator::value("required")->required(), [
+    $case->add(Validator::value("required")->required(), [
         "equal" => [true],
     ], "Expect required to be true");
 
-    $this->add(Validator::value("required")->required(), [
+    $case->add(Validator::value("required")->required(), [
         "equal" => [true],
     ], "Expect required to be true");
 
@@ -218,52 +218,52 @@ $unit->group("MaplePHP input validate test", function(TestCase $inst) {
         ->endsWith(".net");
 
 
-    $inst->validate($validPool->isValid(), function(ValidationChain $inst) {
+    $case->validate($validPool->isValid(), function(ValidationChain $inst) {
         $inst->isFalse();
     });
 
-    $inst->validate($validPool->hasError(), function(ValidationChain $inst) {
+    $case->validate($validPool->hasError(), function(ValidationChain $inst) {
         $inst->isTrue();
     });
 
-    $inst->validate(count($validPool->getFailedValidations()), function(ValidationChain $inst) {
+    $case->validate(count($validPool->getFailedValidations()), function(ValidationChain $inst) {
         $inst->isEqualTo(2);
     });
 
 
-    $inst->validate(Validator::value("GET")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("GET")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("POST")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("POST")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("PUT")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("PUT")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("DELETE")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("DELETE")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("PATCH")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("PATCH")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("HEAD")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("HEAD")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("OPTIONS")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("OPTIONS")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
-    $inst->validate(Validator::value("options")->isRequestMethod(), function(ValidationChain $inst) {
+    $case->validate(Validator::value("options")->isRequestMethod(), function(ValidationChain $inst) {
         $inst->istrue();
     });
 
 
-    //echo $this->listAllProxyMethods(Validator::class, isolateClass: true);
-    //echo $this->listAllProxyMethods(Validator::class, "not", isolateClass: true);
+    //echo $inst->listAllProxyMethods(Validator::class, isolateClass: true);
+    //echo $inst->listAllProxyMethods(Validator::class, "not", isolateClass: true);
 });

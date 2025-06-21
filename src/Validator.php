@@ -14,6 +14,7 @@ use DateTime;
 use DOMDocument;
 use ErrorException;
 use Exception;
+use InvalidArgumentException;
 use MaplePHP\Validate\Interfaces\InpInterface;
 use MaplePHP\DTO\Format\Arr;
 use MaplePHP\DTO\Format\Str;
@@ -106,12 +107,12 @@ class Validator implements InpInterface
     /**
      * Makes it possible to traverse to a value in array or object
      *
-     * @param string $key
+     * @param string|int|float $key
      * @param bool $immutable
      * @return self
      * @throws ErrorException
      */
-    public function eq(string $key, bool $immutable = true): self
+    public function eq(string|int|float $key, bool $immutable = true): self
     {
         $value = $this->value;
         if (is_array($this->value) || is_object($this->value)) {
@@ -275,6 +276,9 @@ class Validator implements InpInterface
      */
     public function isInArray(mixed $needle): bool
     {
+        if(!is_array($this->value)) {
+            return false;
+        }
         return in_array($needle, $this->value, true);
     }
 
@@ -286,7 +290,37 @@ class Validator implements InpInterface
      */
     public function isLooselyInArray(mixed $needle): bool
     {
+        if(!is_array($this->value)) {
+            return false;
+        }
         return in_array($needle, $this->value);
+    }
+
+    /**
+     * Traverse an array or object and validate that the value at the given dot-notated path
+     * is strictly equal to the expected value.
+     *
+     * Supports nested keys using dot notation (e.g., "user.firstname") to access deeply nested values.
+     * Works with both arrays and objects.
+     *
+     * @param string|int|float $key
+     * @param mixed $needle
+     * @return bool
+     * @throws ErrorException
+     */
+    public function hasValueAt(string|int|float $key, mixed $needle): bool
+    {
+        return $this->eq($key)->equal($needle);
+    }
+
+    public function hasJsonValueAt(string|int|float $key, mixed $needle): bool
+    {
+        $inst  = clone $this;
+        $inst->value = json_decode($this->value);
+        if($inst->value === false) {
+            return false;
+        }
+        return $inst->hasValueAt($key, $needle);
     }
 
     /**
@@ -831,7 +865,29 @@ class Validator implements InpInterface
      */
     public function isInstanceOf(object|string $instance): bool
     {
+        if(is_string($this->value)) {
+            return is_a($instance, $this->value, true);
+        }
         return $this->value instanceof $instance;
+    }
+
+    /**
+     * WIll validate if is the class
+     *
+     * @param string $instance
+     * @return bool
+     */
+    function isClass(string $instance): bool
+    {
+        if (is_object($this->value)) {
+            return get_class($this->value) === $instance;
+        }
+
+        if (is_string($this->value) && class_exists($this->value)) {
+            return $this->value === $instance;
+        }
+
+        return false;
     }
 
     /**
