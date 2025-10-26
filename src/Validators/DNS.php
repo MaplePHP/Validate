@@ -11,6 +11,10 @@ namespace MaplePHP\Validate\Validators;
 
 use InvalidArgumentException;
 
+if (!defined('DNS_CAA')) {
+    define('DNS_CAA', 8192); // Official value used in PHP source
+}
+
 class DNS
 {
     public const ALOWED_DNS_TYPES = [

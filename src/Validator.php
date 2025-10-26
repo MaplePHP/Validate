@@ -276,7 +276,7 @@ class Validator implements InpInterface
      */
     public function isInArray(mixed $needle): bool
     {
-        if(!is_array($this->value)) {
+        if (!is_array($this->value)) {
             return false;
         }
         return in_array($needle, $this->value, true);
@@ -290,7 +290,7 @@ class Validator implements InpInterface
      */
     public function isLooselyInArray(mixed $needle): bool
     {
-        if(!is_array($this->value)) {
+        if (!is_array($this->value)) {
             return false;
         }
         return in_array($needle, $this->value);
@@ -317,7 +317,7 @@ class Validator implements InpInterface
     {
         $inst  = clone $this;
         $inst->value = json_decode($this->value);
-        if($inst->value === false) {
+        if ($inst->value === false) {
             return false;
         }
         return $inst->hasValueAt($key, $needle);
@@ -730,6 +730,17 @@ class Validator implements InpInterface
     }
 
     /**
+     * Check is length of value is the length of argument
+     *
+     * @param  int $length
+     * @return bool
+     */
+    public function isLength(int $length): bool
+    {
+        return $this->length === $length;
+    }
+
+    /**
      * Check if the string length is more than start ($min), or between ($min) and ($max)
      *
      * @param  int      $min start length
@@ -840,10 +851,7 @@ class Validator implements InpInterface
      */
     public function isLengthEqualTo(int $length): bool
     {
-        if ($this->length === $length) {
-            return true;
-        }
-        return false;
+        return ($this->length === $length);
     }
 
     /**
@@ -856,7 +864,7 @@ class Validator implements InpInterface
     {
         return $this->value === $expected;
     }
-    
+
     /**
      * Strict data type validation check if value is an instance of the specified class or interface
      *
@@ -865,7 +873,7 @@ class Validator implements InpInterface
      */
     public function isInstanceOf(object|string $instance): bool
     {
-        if(is_string($this->value)) {
+        if (is_string($this->value)) {
             return is_a($instance, $this->value, true);
         }
         return $this->value instanceof $instance;
@@ -877,7 +885,7 @@ class Validator implements InpInterface
      * @param string $instance
      * @return bool
      */
-    function isClass(string $instance): bool
+    public function isClass(string $instance): bool
     {
         if (is_object($this->value)) {
             return get_class($this->value) === $instance;
@@ -1275,7 +1283,7 @@ class Validator implements InpInterface
         $obj = new Traverse($this->value);
         return $obj->flattenWithKeys()->eq($key)->toBool();
     }
-    
+
     /**
      * Check if a query parameter exists in the URL query string and optionally match its value
      *

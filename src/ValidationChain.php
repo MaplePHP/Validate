@@ -60,6 +60,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self min(float $int)
  * @method self max(float $int)
  * @method self length(int $min, ?int $max = '')
+ * @method self isLength(int $length)
  * @method self isArrayEmpty()
  * @method self hasValueAt(string|int|float $key, mixed $needle)
  * @method self hasJsonValueAt(string|int|float $key, mixed $needle)
@@ -157,6 +158,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notMin(float $int)
  * @method self notMax(float $int)
  * @method self notLength(int $min, ?int $max = '')
+ * @method self notIsLength(int $length)
  * @method self notIsArrayEmpty()
  * @method self notHasValueAt(string|int|float $key, mixed $needle)
  * @method self notHasJsonValueAt(string|int|float $key, mixed $needle)
@@ -203,7 +205,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self notOneOf(array $arr)
  * @method self notAllOf(array $arr)
  * @method self notDateRange(string $format = 'Y-m-d H:i')
- * @method self isThrowable(callable $exceptionArg)
+ * @method self isThrowable(callable $compare)
  */
 class ValidationChain
 {
@@ -357,7 +359,7 @@ class ValidationChain
     public function getFailedValidations(): array
     {
 
-        $this->error = array_map(fn($item) => array_filter($item, fn($v) => $v !== false), $this->error);
+        $this->error = array_map(fn ($item) => array_filter($item, fn ($v) => $v !== false), $this->error);
         $this->error = array_filter($this->error);
         return $this->error;
     }
