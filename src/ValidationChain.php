@@ -222,7 +222,7 @@ class ValidationChain
      */
     public function __construct(mixed $value)
     {
-        $this->value = $value;
+        $this->setValue($value);
     }
 
     /**
@@ -237,17 +237,23 @@ class ValidationChain
     }
 
     // Alias to getValue
-    public function val(): mixed
+    public function get(): mixed
     {
         return $this->getValue();
     }
 
     // Alias to getValue
-    public function value(): mixed
+    public function val(): mixed
     {
         return $this->getValue();
     }
 
+    /**
+     * Set a value
+     *
+     * @param mixed $value
+     * @return void
+     */
     public function setValue(mixed $value): void
     {
         $this->value = $value;
