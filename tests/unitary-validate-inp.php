@@ -263,7 +263,8 @@ $unit->group("MaplePHP input validate test", function(TestCase $case) {
         $inst->istrue();
     });
 
-
     //echo $inst->listAllProxyMethods(Validator::class, isolateClass: true);
     //echo $inst->listAllProxyMethods(Validator::class, "not", isolateClass: true);
 });
+
+return $unit;

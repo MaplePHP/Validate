@@ -365,7 +365,7 @@ class ValidationChain
     public function getFailedValidations(): array
     {
 
-        $this->error = array_map(fn ($item) => array_filter($item, fn ($v) => $v !== false), $this->error);
+        $this->error = array_map(fn($item) => array_filter($item, fn($v) => $v !== false), $this->error);
         $this->error = array_filter($this->error);
         return $this->error;
     }
@@ -401,5 +401,41 @@ class ValidationChain
     public function isValid(): bool
     {
         return !$this->getError();
+    }
+
+    /**
+     * Add validation description
+     *
+     * @param string|null $description
+     * @return ValidationChain
+     */
+    public function describe(?string $description = null): self
+    {
+        if (!$this->isValid()) {
+            $this->error[][$description] = null;
+        };
+        return $this;
+    }
+
+    /**
+     * Add validation description (Alias to @describe)
+     *
+     * @param string|null $description
+     * @return void
+     */
+    public function assert(?string $description = null): void
+    {
+        assert($this->isValid(), $description);
+    }
+
+    /**
+     * Add validation description (Alias to @describe)
+     *
+     * @param string|null $description
+     * @return void
+     */
+    public function validate(?string $description = null): void
+    {
+        $this->describe($description);
     }
 }
