@@ -853,6 +853,18 @@ class Validator implements InpInterface
         return ($this->length === $length);
     }
 
+
+    /**
+     * Strict data type validation check if equals to the expected value
+     *
+     * @param mixed $expected
+     * @return bool
+     */
+    public function is(mixed $expected): bool
+    {
+        return $this->value === $expected;
+    }
+
     /**
      * Strict data type validation check if equals to the expected value
      *
@@ -861,7 +873,7 @@ class Validator implements InpInterface
      */
     public function isEqualTo(mixed $expected): bool
     {
-        return $this->value === $expected;
+        return $this->is($expected);
     }
 
     /**

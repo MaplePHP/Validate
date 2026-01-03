@@ -72,6 +72,7 @@ use MaplePHP\Validate\Validators\Luhn;
  * @method self toIntEqual(int $value)
  * @method self isLengthEqualTo(int $length)
  * @method self isEqualTo(mixed $expected)
+ * @method self is(mixed $expected)
  * @method self isInstanceOf(object|string $instance)
  * @method self isClass(string $instance)
  * @method self isLooselyEqualTo(mixed $expected)
