@@ -1,7 +1,6 @@
 {
   "name": "maplephp/validate",
   "type": "library",
-  "version": "v1.2.1",
   "description": "User-friendly input validation library.",
   "keywords": [
     "validation",
@@ -23,14 +22,17 @@
   ],
   "require": {
     "php": ">=8.0",
-    "maplephp/dto": "^3.0"
+    "maplephp/dto": "^3.1"
   },
   "require-dev": {
-    "maplephp/unitary": "^1.0"
+    "maplephp/unitary": "^2.0"
   },
   "autoload": {
+    "files": [
+      "src/Setup/polyfill.php"
+    ],
     "psr-4": {
-      "MaplePHP\\Validate\\": ""
+      "MaplePHP\\Validate\\": "src"
     }
   },
   "minimum-stability": "dev"

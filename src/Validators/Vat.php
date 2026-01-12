@@ -4,12 +4,12 @@
  * @Package:    MaplePHP - Validate vat number
  * @Author:     Daniel Ronkainen
  * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
-                Don't delete this comment, its part of the license.
+                Don't delete this comment, it's part of the license.
  */
 
-namespace MaplePHP\Validate;
+namespace MaplePHP\Validate\Validators;
 
-class ValidVatFormat
+class Vat
 {
     /**
      * Regular expression per country code

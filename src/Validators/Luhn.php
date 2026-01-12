@@ -1,33 +1,25 @@
 <?php
 
 /**
- * @Package:    MaplePHP - Luhn algorith
+ * @Package:    MaplePHP - Luhn algorithm
  * @Author:     Daniel Ronkainen
  * @Licence:    Apache-2.0 license, Copyright © Daniel Ronkainen
                 Don't delete this comment, its part of the license.
  */
 
-namespace MaplePHP\Validate;
-
-use MaplePHP\Validate\ValidVatFormat;
+namespace MaplePHP\Validate\Validators;
 
 class Luhn
 {
-    private $number;
-    private $string;
-    private $part;
-    //private $length;
+    private string|array|null $number;
+    private string|array|null $string;
+    private array $part;
 
-    /**
-     * Start intsance and input Value
-     */
     public function __construct($number)
     {
         preg_match('/^[a-zA-Z\d]+$/', $number, $this->string);
-
         $this->string = preg_replace('/[^A-Z\d]/', '', strtoupper($number));
         $this->number = preg_replace('/\D/', '', $number);
-        //$this->length = (is_string($this->number)) ? strlen($this->number) : 0;
     }
 
     /**
@@ -104,10 +96,11 @@ class Luhn
      */
 
     /**
-     * Is valid creditcard number
+     * Is valid credit card number
+     *
      * @return bool
      */
-    public function creditcard(): bool
+    public function creditCard(): bool
     {
         if ($this->cardPrefix()) {
             $sum = $this->luhn($this->number);
@@ -118,6 +111,7 @@ class Luhn
 
     /**
      * Get card type
+     *
      * @return string|bool
      */
     public function cardPrefix(): string|bool
@@ -145,12 +139,13 @@ class Luhn
     }
 
     /**
-     * Validate Vat
+     * Validate if is a vat number, will work for multiple countries
+     *
      * @return bool
      */
     public function vatNumber(): bool
     {
-        $vat = new ValidVatFormat($this->string);
+        $vat = new Vat($this->string);
         if ($vat->validate()) {
             if ($vat->getCountryCode() === "SE") {
                 return $this->orgNumber();
@@ -162,7 +157,8 @@ class Luhn
     }
 
     /**
-     * Chech if is a date
+     * Check if is a date
+     *
      * @return boolean
      */
     public function isDate(): bool
@@ -175,12 +171,14 @@ class Luhn
     }
 
     /**
-     * Check if is a coordinaion number
+     * Check if is a coordination number
+     *
      * If you are going to live and work here but don’t meet the requirements
      * for registering in the Swedish Population Register.
+     *
      * @return bool
      */
-    public function isCoordinationNumber()
+    public function isCoordinationNumber(): bool
     {
         return checkdate(
             $this->getPart('month'),
@@ -190,13 +188,14 @@ class Luhn
     }
 
     /**
-     * The Luhn algorithm.
-     * @param string str
+     * The Luhn algorithm
+     *
+     * @param string $number
      * @return float
      */
-    final protected function luhn($number): float
+    final protected function luhn(string $number): float
     {
-        $_val = $sum = 0;
+        $sum = 0;
         for ($i = 0; $i < strlen($number); $i++) {
             $_val = (int)$number[$i];
             $_val *= 2 - ($i % 2);
@@ -211,12 +210,13 @@ class Luhn
 
     /**
      * Parse Swedish social security numbers and get the parts
+     *
      * @return array
      */
-    final protected function part()
+    final protected function part(): array
     {
         $match = [];
-        $reg = '/^(\d{2}){0,1}(\d{2})(\d{2})(\d{2})([\+\-\s]?)(\d{3})(\d)$/';
+        $reg = '/^(\d{2})?(\d{2})(\d{2})(\d{2})([+\-\s]?)(\d{3})(\d)$/';
         preg_match($reg, $this->number, $match);
         if (count($match) !== 8) {
             return [];
@@ -231,7 +231,7 @@ class Luhn
         $check   = $match[7];
 
         if (!in_array($sep, ['-', '+'])) {
-            if (empty($century) || date('Y') - intval(strval($century) . strval($year)) < 100) {
+            if (empty($century) || date('Y') - intval($century . $year) < 100) {
                 $sep = '-';
             } else {
                 $sep = '+';
@@ -259,6 +259,7 @@ class Luhn
 
     /**
      * Get part
+     *
      * @param  string $key
      * @return int
      */
