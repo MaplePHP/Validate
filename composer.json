@@ -35,5 +35,10 @@
       "MaplePHP\\Validate\\": "src"
     }
   },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "2.x-dev"
+    }
+  },
   "minimum-stability": "dev"
 }

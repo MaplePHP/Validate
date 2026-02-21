@@ -253,11 +253,12 @@ class ValidationChain
      * Set a value
      *
      * @param mixed $value
-     * @return void
+     * @return self
      */
-    public function setValue(mixed $value): void
+    public function setValue(mixed $value): self
     {
         $this->value = $value;
+        return $this;
     }
 
     /**
