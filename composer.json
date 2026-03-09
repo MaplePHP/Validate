@@ -20,6 +20,9 @@
       "homepage": "https://wazabii.se"
     }
   ],
+  "scripts": {
+    "test": "php vendor/bin/unitary"
+  },
   "require": {
     "php": ">=8.0",
     "maplephp/dto": "^3.1"
